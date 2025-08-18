@@ -1,12 +1,16 @@
 # scholarships/serializers.py
 from rest_framework import serializers
-from .models import Wishlist, Scholarship
+from .models import Wishlist, Scholarship, RawScholarship
 
 class ScholarshipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Scholarship
         fields = '__all__' # 모든 필드를 자동으로 포함합니다.
 
+class RawScholarshipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RawScholarship
+        fields = '__all__'
 class WishlistSerializer(serializers.ModelSerializer):
     # WishlistSerializer 내부에서 Scholarship 정보를 중첩하여 표시합니다.
     # 이 경우 ScholarshipSerializer도 변경된 필드명을 자동으로 반영합니다.
