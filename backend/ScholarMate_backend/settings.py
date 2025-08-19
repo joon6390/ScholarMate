@@ -16,6 +16,22 @@ from dotenv import load_dotenv # dotenv 임포트
 # .env 파일 로드
 load_dotenv() 
 
+# --- Email settings ---
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.naver.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "465"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "joon6390@naver.com")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False") == "True"
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "True") == "True"
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+
+# 쉼표 구분 수신자 리스트
+CONTACT_ADMIN_EMAILS = [
+    e.strip() for e in os.getenv("CONTACT_ADMIN_EMAILS", "").split(",") if e.strip()
+]
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -50,6 +66,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'userinfor',
+    'contact',
 ]
 
 REST_FRAMEWORK = {
@@ -204,3 +221,5 @@ CELERY_TIMEZONE = 'Asia/Seoul'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
