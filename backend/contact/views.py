@@ -15,9 +15,9 @@ class ContactCreateView(CreateAPIView):
     def perform_create(self, serializer):
         instance = serializer.save()  # DB 저장
 
-        # ----- 메일 본문 준비 (f-string 밖에서 전처리) -----
+        # ----- f-string 내부에 백슬래시가 없도록 미리 전처리 -----
         created_at_str = instance.created_at.strftime("%Y-%m-%d %H:%M:%S")
-        msg_html = instance.message.replace("\n", "<br/>")
+        msg_html = (instance.message or "").replace("\n", "<br/>")
 
         subject = "[문의 알림] 새 문의가 도착했습니다"
         text_body = (
@@ -42,7 +42,7 @@ class ContactCreateView(CreateAPIView):
                 msg.attach_alternative(html_body, "text/html")
                 msg.send(fail_silently=True)
             except Exception:
-                # 로그만 남기고 무시해도 OK
+                # 메일 실패는 서비스에 영향 없게 무시(로그만 남기는 정도)
                 pass
 
     def create(self, request, *args, **kwargs):
