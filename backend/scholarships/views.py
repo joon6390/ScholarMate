@@ -1,31 +1,32 @@
-# scholarships/views.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-import requests
-import openai
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from datetime import datetime, date
 from django.shortcuts import get_object_or_404
 from django.utils.dateparse import parse_date
 from rest_framework.decorators import api_view, permission_classes
-from .models import Scholarship, Wishlist
-from .serializers import CalendarScholarshipSerializer, WishlistSerializer, ScholarshipSerializer
+
+# ✅ RawScholarship 모델 및 시리얼라이저 임포트 추가
+from .models import Scholarship, Wishlist, RawScholarship
+from .serializers import CalendarScholarshipSerializer, WishlistSerializer, ScholarshipSerializer, RawScholarshipSerializer
 from userinfor.models import UserScholarship
 from django.conf import settings
 from .recommendation import recommend
 import urllib.parse
+import openai
 
-# (기존의 API_URL 및 SERVICE_KEY는 그대로 유지)
-API_URL = "https://api.odcloud.kr/api/15028252/v1/uddi:ccd5ddd5-754a-4eb8-90f0-cb9bce54870b"
-SERVICE_KEY = settings.SERVICE_KEY
+# OpenAI API 키는 여전히 필요하므로 유지합니다.
 openai.api_key = settings.OPENAI_API_KEY
 
+
+# ⚠️ 이 함수는 이제 sync_scholarships.py에서 사용되지 않으며,
+# AddToWishlistFromAPI 뷰에서 직접 장학금 추가 시에만 사용됩니다.
 def get_processed_region_from_text(text: str) -> str:
     """주어진 텍스트를 GPT로 분석하여 정형화된 지역명을 반환합니다."""
     if not text or text.strip().lower() in ["", "해당없음"]:
         return "전국"
-    
+
     if not openai.api_key:
         print("경고: OpenAI API 키가 설정되지 않아 지역 처리를 건너뜁니다.")
         return ""
@@ -65,106 +66,63 @@ def get_processed_region_from_text(text: str) -> str:
         print(f"오류: GPT 지역 처리 중 오류 발생 - {e}")
         return ""
 
+
 class ScholarshipListView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        # 로컬 페이지네이션에만 사용
+        # ✅ 외부 API 호출 대신 RawScholarship 모델에서 데이터 로드
         try:
-            page = int(request.query_params.get("page", 1))
-            per_page = int(request.query_params.get("perPage", 10))
-        except (ValueError, TypeError):
-            page, per_page = 1, 10
+            # 쿼리 파라미터로 필터/검색/정렬 조건을 적용할 수 있습니다.
+            scholarships_queryset = RawScholarship.objects.all()
 
-        search_query  = (request.query_params.get("search", "") or "").strip().lower()
-        selected_type = (request.query_params.get("type", "")   or "").strip()
-        sort_order    = (request.query_params.get("sort", "")   or "").strip()
+            search_query = request.query_params.get("search", "")
+            selected_type = request.query_params.get("type", "")
+            sort_order = request.query_params.get("sort", "")
 
-        # 서비스 키 디코딩 (이중 인코딩 방지)
-        try:
-            decoded_service_key = urllib.parse.unquote(SERVICE_KEY)
-        except Exception:
-            decoded_service_key = SERVICE_KEY
+            # 검색 (상품명, 운영기관명, 설명에 대해 대소문자 구분 없이 검색)
+            if search_query:
+                from django.db.models import Q
+                scholarships_queryset = scholarships_queryset.filter(
+                    Q(name__icontains=search_query) |
+                    Q(foundation_name__icontains=search_query) |
+                    Q(description__icontains=search_query)
+                )
 
-        # ---------- 전체 수집 ----------
-        FETCH_PER_PAGE = 1000   # ODcloud 최대 가까운 값
-        MAX_ROUNDS     = 50     # 안전장치 (최대 5만건)
-        all_rows = []
+            # 유형 필터
+            if selected_type:
+                scholarships_queryset = scholarships_queryset.filter(product_type=selected_type)
+                
+            # 정렬
+            if sort_order == "end_date":
+                scholarships_queryset = scholarships_queryset.order_by('recruitment_end')
 
-        # 1페이지: totalCount 파악용
-        params = {
-            "serviceKey": decoded_service_key,
-            "page": 1,                   # ← 외부 호출에는 내부 페이징만 사용
-            "perPage": FETCH_PER_PAGE,   #   크게 가져와서 우리가 자름
-            "returnType": "JSON",
-        }
-        try:
-            first = requests.get(API_URL, params=params, timeout=30)
-            first.raise_for_status()
-            first_json = first.json()
-        except Exception as e:
-            print(f"[ScholarshipListView] 1차 호출 실패: {e}")
-            return Response({"error": "외부 API 호출 실패"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        total_count = int(first_json.get("totalCount", 0) or 0)
-        all_rows.extend(first_json.get("data", []) or [])
-
-        import math
-        total_pages = max(1, math.ceil(total_count / FETCH_PER_PAGE))
-        cur, rounds = 2, 1
-        while cur <= total_pages and rounds < MAX_ROUNDS:
+            # 로컬 페이지네이션
             try:
-                p = {
-                    "serviceKey": decoded_service_key,
-                    "page": cur,
-                    "perPage": FETCH_PER_PAGE,
-                    "returnType": "JSON",
-                }
-                r = requests.get(API_URL, params=p, timeout=30)
-                r.raise_for_status()
-                js = r.json()
-                all_rows.extend(js.get("data", []) or [])
-            except Exception as e:
-                print(f"[ScholarshipListView] 페이지 {cur} 수집 실패: {e}")
-                break
-            cur += 1
-            rounds += 1
+                page = int(request.query_params.get("page", 1))
+                per_page = int(request.query_params.get("perPage", 10))
+            except (ValueError, TypeError):
+                page, per_page = 1, 10
+            
+            total_after = scholarships_queryset.count()
+            start = max(0, (page - 1) * per_page)
+            end = start + per_page
+            
+            page_rows = scholarships_queryset[start:end]
+            
+            serializer = RawScholarshipSerializer(page_rows, many=True)
 
-        # ---------- 전체 기준 필터/검색/정렬 ----------
-        filtered = all_rows
+            return Response(
+                {
+                    "data": serializer.data,
+                    "total": total_after,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[ScholarshipListView] DB 조회 실패: {e}")
+            return Response({"error": "데이터를 불러오는 중 오류가 발생했습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # 검색(상품명 포함)
-        if search_query:
-            filtered = [row for row in filtered
-                        if search_query in (row.get("상품명") or "").lower()]
-
-        # 유형(외부 응답의 '학자금유형구분' 과 일치하는 값만)
-        if selected_type:
-            filtered = [row for row in filtered
-                        if (row.get("학자금유형구분") or "") == selected_type]
-
-        # 정렬
-        if sort_order == "end_date":
-            def parse_end(d):
-                try:
-                    return datetime.strptime(d, "%Y-%m-%d")
-                except Exception:
-                    return datetime.max  # 없는 건 뒤로
-            filtered.sort(key=lambda x: parse_end(x.get("모집종료일") or ""))
-
-        # ---------- 로컬 페이지네이션 ----------
-        total_after = len(filtered)
-        start = max(0, (page - 1) * per_page)
-        end   = start + per_page
-        page_rows = filtered[start:end]
-
-        return Response(
-            {
-                "data": page_rows,       # 현재 페이지 데이터
-                "total": total_after,    # 필터/검색/정렬 적용 후 전체 개수
-            },
-            status=status.HTTP_200_OK,
-        )
 
 class ToggleWishlistAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -211,10 +169,15 @@ class AddToWishlistFromAPI(APIView):
         if not product_id:
             return Response({"error": "product_id 또는 장학금 정보(name, foundation_name)는 필수입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # 사용자가 찜한 장학금은 Scholarship 테이블에 생성
         scholarship, created = Scholarship.objects.get_or_create(product_id=product_id)
 
         if created:
+        feature/Wishlist
             residency_text = data.get("residency_requirement_details", "")
+            residency_text = data.get("지역거주여부 상세내용", "")
+            
+        main
             processed_region = get_processed_region_from_text(residency_text)
 
             def parse_date_safely(date_str):
@@ -254,7 +217,8 @@ class AddToWishlistFromAPI(APIView):
         wishlist, wishlist_created = Wishlist.objects.get_or_create(user=request.user, scholarship=scholarship)
         
         return Response({"status": "added" if wishlist_created else "exists"}, status=status.HTTP_200_OK)
-    
+
+
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def remove_from_wishlist(request, pk):
