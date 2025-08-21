@@ -205,10 +205,12 @@ class AddToWishlistFromAPI(APIView):
             scholarship.major_field = data.get("학과구분", "")
             scholarship.academic_year_type = data.get("학년구분", "")
             scholarship.managing_organization_type = data.get("운영기관구분", "")
-            
+            scholarship.url = data.get("url", "")
+
+
             scholarship.region = processed_region
             scholarship.is_region_processed = True
-            
+
             scholarship.save()
             print(f"DEBUG: 새로운 장학금 '{name}' 생성 및 지역 처리 완료. 지역: '{processed_region}'")
 
