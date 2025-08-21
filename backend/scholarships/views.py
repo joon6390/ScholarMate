@@ -187,7 +187,6 @@ class AddToWishlistFromAPI(APIView):
                     except ValueError:
                         return None
                 return None
-            
             scholarship.name = data.get("name")
             scholarship.foundation_name = data.get("foundation_name")
             scholarship.recruitment_start = parse_date_safely(data.get("recruitment_start"))
@@ -199,6 +198,16 @@ class AddToWishlistFromAPI(APIView):
             scholarship.support_details = data.get("support_details", "")
             scholarship.specific_qualification_details = data.get("specific_qualification_details", "")
             scholarship.residency_requirement_details = residency_text
+        feature/Homepage
+            scholarship.selection_method_details = data.get("선발방법 상세내용", "")
+            scholarship.number_of_recipients_details = data.get("선발인원 상세내용", "")
+            scholarship.eligibility_restrictions = data.get("자격제한 상세내용", "")
+            scholarship.required_documents_details = data.get("제출서류 상세내용", "")
+            scholarship.recommendation_required = data.get("추천필요여부 상세내용", "") == "필요"
+            scholarship.major_field = data.get("학과구분", "")
+            scholarship.academic_year_type = data.get("학년구분", "")
+            scholarship.managing_organization_type = data.get("운영기관구분", "")
+            scholarship.url = data.get("url", "")
             scholarship.selection_method_details = data.get("selection_method_details", "")
             scholarship.number_of_recipients_details = data.get("number_of_recipients_details", "")
             scholarship.eligibility_restrictions = data.get("eligibility_restrictions", "")
@@ -207,10 +216,10 @@ class AddToWishlistFromAPI(APIView):
             scholarship.major_field = data.get("major_field", "")
             scholarship.academic_year_type = data.get("academic_year_type", "")
             scholarship.managing_organization_type = data.get("managing_organization_type", "")
-            
+        main
             scholarship.region = processed_region
             scholarship.is_region_processed = True
-            
+
             scholarship.save()
             print(f"DEBUG: 새로운 장학금 '{data.get('name')}' 생성 및 지역 처리 완료. 지역: '{processed_region}'")
 
