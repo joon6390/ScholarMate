@@ -30,6 +30,7 @@ class RawScholarship(models.Model):
     required_documents_details = models.TextField(null=True, blank=True, verbose_name="제출 서류 상세")
     support_details = models.TextField(null=True, blank=True, verbose_name="지원금액 상세")
     recommendation_required = models.BooleanField(default=False, verbose_name="추천서 필요 여부")
+    url = models.URLField(max_length=500, null=True, blank=True, verbose_name="홈페이지 주소")
 
     class Meta:
         verbose_name = "원본 장학금"
