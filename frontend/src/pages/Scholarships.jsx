@@ -266,6 +266,7 @@ export default function Scholarships() {
       {isModalOpen && selectedScholarship && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        feature/Wishlist
             <button
               type="button"
               className="absolute right-4 top-3 text-xs font-bold rounded !bg-black !text-white px-2 py-1"
@@ -274,7 +275,9 @@ export default function Scholarships() {
             >
               닫기
             </button>
-
+            
+            <button className="modal-close" onClick={closeModal} aria-label="닫기">×</button>
+        main
             {/* ✅ 모달 제목 필드명 수정 */}
             <h2>{selectedScholarship.name} 상세 정보</h2>
             <div className="modal-body">
