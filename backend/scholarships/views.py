@@ -151,8 +151,7 @@ class ScholarshipListView(APIView):
             if search_query:
                 qs = qs.filter(
                     Q(name__icontains=search_query) |
-                    Q(foundation_name__icontains=search_query) |
-                    Q(description__icontains=search_query)
+                    Q(foundation_name__icontains=search_query)
                 )
 
             if selected_type:
