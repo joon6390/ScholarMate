@@ -16,6 +16,23 @@ from dotenv import load_dotenv # dotenv 임포트
 # .env 파일 로드
 load_dotenv() 
 
+EMAIL_VERIFICATION_CODE_TTL = 120
+EMAIL_VERIFICATION_COOLDOWN = 60
+ENABLE_EMAIL_VERIFICATION = True
+
+# === Shared cache (Redis) ===
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.environ.get("REDIS_CACHE_URL", "redis://127.0.0.1:6379/1"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": "scholarmate",
+        "TIMEOUT": 300,
+    }
+}
+
 # --- Email settings ---
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.naver.com")
@@ -30,7 +47,6 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 CONTACT_ADMIN_EMAILS = [
     e.strip() for e in os.getenv("CONTACT_ADMIN_EMAILS", "").split(",") if e.strip()
 ]
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -67,6 +83,7 @@ INSTALLED_APPS = [
     'django_filters',
     'userinfor',
     'contact',
+    'accounts',
 ]
 
 REST_FRAMEWORK = {
@@ -94,7 +111,7 @@ SIMPLE_JWT = {
 DJOSER = {
     "USER_ID_FIELD": "username",    # ✅ Django 기본 User 모델에서 username 사용
     "SERIALIZERS": {
-        "user_create": "djoser.serializers.UserCreateSerializer",   # ✅ 기본 회원가입 Serializer 사용
+        "user_create": "accounts.serializers.UserCreateSerializer",   # ✅ 기본 회원가입 Serializer 사용
         "user": "djoser.serializers.UserSerializer",
         "current_user": "djoser.serializers.UserSerializer",
     },
