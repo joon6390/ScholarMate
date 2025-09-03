@@ -17,3 +17,6 @@ class UserCreateSerializer(BaseUserCreateSerializer):
         if not cache.get(_verified_key(email)):
             raise serializers.ValidationError({"email": "이메일 인증이 필요합니다. 인증번호를 확인해 주세요."})
         return attrs
+
+class EmailOnlySerializer(serializers.Serializer):
+    email = serializers.EmailField()
