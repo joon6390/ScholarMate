@@ -29,4 +29,6 @@ urlpatterns = [
 
     # 서버 상태 확인 (루트 URL)
     path("", api_server_status),
+
+    path("api/", include("notices.urls")),
 ]
