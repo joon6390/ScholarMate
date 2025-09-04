@@ -6,6 +6,10 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 
+LANGUAGE_CODE = "ko-kr"
+TIME_ZONE = "Asia/Seoul"
+USE_TZ = True  # 내부 저장은 UTC, 표시/입력은 KST
+
 # .env 로드
 load_dotenv()
 
@@ -71,6 +75,7 @@ INSTALLED_APPS = [
     "userinfor",
     "contact",
     "accounts",
+    "notices",
 ]
 
 SITE_ID = 1
@@ -102,8 +107,8 @@ DJOSER = {
     "USER_ID_FIELD": "username",
     "SERIALIZERS": {
         "user_create": "accounts.serializers.UserCreateSerializer",
-        "user": "djoser.serializers.UserSerializer",
-        "current_user": "djoser.serializers.UserSerializer",
+        "user": "accounts.serializers.CustomUserSerializer",
+        "current_user": "accounts.serializers.CustomUserSerializer",
     },
     # 프론트의 라우트에 맞춤
     "PASSWORD_RESET_CONFIRM_URL": "reset-password?uid={uid}&token={token}",
