@@ -1,3 +1,4 @@
+// src/App.jsx
 import { useState, useEffect } from "react";
 import { Route, Routes, Navigate, Link, useNavigate, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
@@ -10,14 +11,17 @@ import PrivateRoute from "./components/PrivateRoute";
 import logo from "./assets/img/로고.png";
 import Wishlist from "./components/Wishlist";
 import CalendarPage from "./pages/Calendar";
-import isTokenExpired from "./api/auth"; 
+import isTokenExpired from "./api/auth";
 import Recommendation from "./pages/Recommendation";
 import CommunityPage from "./pages/CommunityPage";
-import Introduction from "./pages/Introduction";  
+import Introduction from "./pages/Introduction";
 import NoticeList from "./pages/NoticeList";
 import NoticeDetail from "./pages/NoticeDetail";
 import CommunityDetail from "./pages/CommunityDetail";
-import 'antd/dist/reset.css';
+import "antd/dist/reset.css";
+import Messages from "./pages/Messages";         // 대화방(단일)
+import MessagesList from "./pages/MessagesList"; // 쪽지 목록
+import HeaderMessagesIcon from "./components/HeaderMessagesIcon";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -26,7 +30,6 @@ export default function App() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (token && isTokenExpired(token)) {
       localStorage.removeItem("token");
       localStorage.removeItem("refreshToken");
@@ -38,14 +41,14 @@ export default function App() {
 
   const handleLogin = () => {
     setIsLoggedIn(true);
-    navigate("/", { replace: true }); // ✅ navigate로 일관성 유지
+    navigate("/", { replace: true });
   };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken"); // ✅ refreshToken도 삭제
+    localStorage.removeItem("refreshToken");
     setIsLoggedIn(false);
-    navigate("/", { replace: true }); // ✅ 새로고침 대신 부드러운 라우팅
+    navigate("/", { replace: true });
   };
 
   return (
@@ -54,11 +57,10 @@ export default function App() {
         <div className="header-left">
           <Link to="/" style={{ textDecoration: "none", color: "inherit", display: "flex", alignItems: "center" }}>
             <img src={logo} alt="Logo" className="logo" />
-             <h1 className="text-center text-2xl font-bold">
-              ScholarMate
-             </h1>
+            <h1 className="text-center text-2xl font-bold">ScholarMate</h1>
           </Link>
         </div>
+
         <nav className="nav">
           <Link to="/scholarships" className="nav-btn">전체 장학금</Link>
           <Link to="/recommendation" className="nav-btn">추천 장학금</Link>
@@ -66,7 +68,10 @@ export default function App() {
           <Link to="/calendar" className="nav-btn">나의 장학 캘린더</Link>
           <Link to="/Userinfor" className="nav-btn">나의 장학 정보</Link>
         </nav>
+
         <div className="header-right" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <Link to="/messages" className="nav-btn">쪽지함</Link>
+          <HeaderMessagesIcon />
           {isLoggedIn ? (
             <button className="login-btn" onClick={() => navigate("/profile")}>마이페이지</button>
           ) : (
@@ -83,6 +88,7 @@ export default function App() {
       <main className="content">
         <Routes>
           <Route path="/" element={<Home />} />
+
           <Route
             path="/scholarships"
             element={
@@ -107,7 +113,6 @@ export default function App() {
               </PrivateRoute>
             }
           />
-            
           <Route
             path="/calendar"
             element={
@@ -132,6 +137,7 @@ export default function App() {
               </PrivateRoute>
             }
           />
+
           <Route path="/profile" element={isLoggedIn ? <Profile /> : <Navigate to="/login" />} />
           <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
           <Route path="/register" element={isLoggedIn ? <Navigate to="/" /> : <Register />} />
@@ -139,6 +145,26 @@ export default function App() {
           <Route path="/notice" element={<NoticeList />} />
           <Route path="/notice/:id" element={<NoticeDetail />} />
           <Route path="/community/:id" element={<CommunityDetail />} />
+
+          {/* ✅ 쪽지 목록 (딱 1개만 선언) */}
+          <Route
+            path="/messages"
+            element={
+              <PrivateRoute isLoggedIn={isLoggedIn}>
+                <MessagesList />
+              </PrivateRoute>
+            }
+          />
+
+          {/* ✅ 쪽지 대화방 */}
+          <Route
+            path="/messages/:conversationId"
+            element={
+              <PrivateRoute isLoggedIn={isLoggedIn}>
+                <Messages />
+              </PrivateRoute>
+            }
+          />
         </Routes>
       </main>
     </>

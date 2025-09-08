@@ -1,5 +1,7 @@
+// src/components/Header.jsx
 import { Link } from "react-router-dom";
 import logo from "../assets/img/로고.png";
+import HeaderMessagesIcon from "./HeaderMessagesIcon"; // <= 경로 확인! 파일은 src/components/HeaderMessagesIcon.jsx
 
 export default function Header({ isLoggedIn, handleLogout }) {
   return (
@@ -21,16 +23,24 @@ export default function Header({ isLoggedIn, handleLogout }) {
         <Link to="/Userinfor" className="hover:text-blue-600">개인 장학 정보</Link>
       </nav>
 
-      {/* 오른쪽 버튼 */}
-      <div className="flex gap-2">
+      {/* 오른쪽: 쪽지 + 계정 */}
+      <div className="flex items-center gap-3">
+        {/* 1) 텍스트 링크(확실한 발견성) */}
+        <Link to="/messages" className="text-sm text-[#2c3e50] hover:text-blue-600">
+          쪽지함
+        </Link>
+
+        {/* 2) 아이콘 + 뱃지 + 미리보기 (정상일 땐 이것도 보임) */}
+        <HeaderMessagesIcon />
+
         {isLoggedIn ? (
           <>
-            <button
-              onClick={() => window.location.href = "/profile"}
+            <Link
+              to="/profile"
               className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition"
             >
               마이페이지
-            </button>
+            </Link>
             <button
               onClick={handleLogout}
               className="text-black px-4 py-2 rounded-md hover:bg-blue-500 hover:text-white transition"
@@ -39,12 +49,12 @@ export default function Header({ isLoggedIn, handleLogout }) {
             </button>
           </>
         ) : (
-          <button
-            onClick={() => window.location.href = "/login"}
+          <Link
+            to="/login"
             className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition"
           >
             로그인
-          </button>
+          </Link>
         )}
       </div>
     </header>
