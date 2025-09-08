@@ -5,13 +5,24 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
-
-LANGUAGE_CODE = "ko-kr"
-TIME_ZONE = "Asia/Seoul"
-USE_TZ = True  # 내부 저장은 UTC, 표시/입력은 KST
+from corsheaders.defaults import default_headers  # ✅ CORS 기본 헤더 확장용
 
 # .env 로드
 load_dotenv()
+
+# ===== 경로 & 기본 =====
+BASE_DIR = Path(__file__).resolve().parent.parent
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "your-default-secret-key-for-dev")
+DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
+ALLOWED_HOSTS = os.environ.get(
+    "DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost,34.228.112.95"
+).split(",")
+
+# ===== 국제화(i18n) / 시간대 =====
+LANGUAGE_CODE = "ko-kr"
+USE_I18N = True
+TIME_ZONE = "Asia/Seoul"   # 표시/입력 기준
+USE_TZ = True              # DB 저장은 UTC (권장)
 
 # ===== 이메일 인증 코드(커스텀 기능용) =====
 EMAIL_VERIFICATION_CODE_TTL = 120
@@ -43,14 +54,6 @@ CONTACT_ADMIN_EMAILS = [
     e.strip() for e in os.getenv("CONTACT_ADMIN_EMAILS", "").split(",") if e.strip()
 ]
 
-# ===== 경로 & 기본 =====
-BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "your-default-secret-key-for-dev")
-DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
-ALLOWED_HOSTS = os.environ.get(
-    "DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost,34.228.112.95"
-).split(",")
-
 # ===== 앱 =====
 INSTALLED_APPS = [
     # django 기본
@@ -76,6 +79,7 @@ INSTALLED_APPS = [
     "contact",
     "accounts",
     "notices",
+    "community",
 ]
 
 SITE_ID = 1
@@ -121,13 +125,13 @@ DJOSER = {
         "set_password": ["rest_framework.permissions.IsAuthenticated"],
     },
     # ✅ Sites 미스매치로 500 방지: 도메인 강제 지정
-    "DOMAIN": "localhost:5173",
+    "DOMAIN": os.getenv("FRONTEND_DOMAIN", "localhost:5173"),
     "SITE_NAME": "ScholarMate",
 }
 
 # ===== 미들웨어 =====
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",            # ✅ 최상단 배치 권장
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -143,7 +147,15 @@ CORS_ALLOWED_ORIGINS = os.environ.get(
     "http://localhost:5173,http://34.228.112.95",
 ).split(",")
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_HEADERS = ["authorization", "content-type"]
+
+# ❗ 기본 헤더를 유지한 채 필요한 헤더만 추가 (preflight 깨짐 방지)
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "authorization",
+    "content-type",
+]
+
+# (필요시) 노출 헤더
+# CORS_EXPOSE_HEADERS = ["Content-Disposition"]
 
 CSRF_TRUSTED_ORIGINS = os.environ.get(
     "CSRF_TRUSTED_ORIGINS",
@@ -179,7 +191,6 @@ DATABASES = {
         "PASSWORD": os.environ["DATABASE_PASSWORD"],
         "HOST": os.environ["DATABASE_HOST"],
         "PORT": os.environ["DATABASE_PORT"],
-        # 엄격 모드 권장(선택)
         # "OPTIONS": {"init_command": "SET sql_mode='STRICT_TRANS_TABLES'"},
     }
 }
@@ -191,12 +202,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
-
-# ===== i18n =====
-LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
-USE_I18N = True
-USE_TZ = True
 
 # ===== 정적파일 =====
 STATIC_URL = "/static/"
@@ -220,4 +225,3 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "Asia/Seoul"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
