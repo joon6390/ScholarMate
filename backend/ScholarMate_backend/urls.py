@@ -31,4 +31,6 @@ urlpatterns = [
     path("", api_server_status),
 
     path("api/", include("notices.urls")),
+
+    path("api/", include("community.urls")),
 ]
