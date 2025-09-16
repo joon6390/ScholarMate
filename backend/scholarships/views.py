@@ -1,171 +1,185 @@
 # scholarships/views.py
+from datetime import datetime, date
+from django.conf import settings
+from django.shortcuts import get_object_or_404
+from django.utils.dateparse import parse_date
+from django.forms.models import model_to_dict
+from django.db.models import Q
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-import requests
-import openai
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from datetime import datetime, date
-from django.shortcuts import get_object_or_404
-from django.utils.dateparse import parse_date
 from rest_framework.decorators import api_view, permission_classes
-from .models import Scholarship, Wishlist
-from .serializers import CalendarScholarshipSerializer, WishlistSerializer, ScholarshipSerializer
-from userinfor.models import UserScholarship
-from django.conf import settings
-from .recommendation import recommend
-import urllib.parse
 
-# (기존의 API_URL 및 SERVICE_KEY는 그대로 유지)
-API_URL = "https://api.odcloud.kr/api/15028252/v1/uddi:ccd5ddd5-754a-4eb8-90f0-cb9bce54870b"
-SERVICE_KEY = settings.SERVICE_KEY
+from .models import Scholarship, Wishlist, RawScholarship
+from .serializers import (
+    CalendarScholarshipSerializer,
+    WishlistSerializer,
+    ScholarshipSerializer,
+    RawScholarshipSerializer,
+)
+from userinfor.models import UserScholarship
+from .recommendation import recommend
+
+import re
+from urllib.parse import urlparse
+import openai
 openai.api_key = settings.OPENAI_API_KEY
+
+
+# -------------------- 유틸: URL 정규화/추출 --------------------
+def _normalize_url(u: str) -> str | None:
+    """문자열을 안전한 URL로 정규화. 쓰레기값은 None으로."""
+    if not u or not isinstance(u, str):
+        return None
+    v = u.strip()
+
+    # 열면 안 되는 값 (한글/영문 혼합)
+    invalid_tokens = {
+        "", "#", "-", "null", "none", "n/a", "N/A",
+        "해당없음", "없음", "미정", "준비중"
+    }
+    if v in invalid_tokens or v.lower() in {t.lower() for t in invalid_tokens}:
+        return None
+
+    # 스킴 없으면 https 붙이기
+    if not re.match(r"^https?://", v, re.IGNORECASE):
+        v = "https://" + v.lstrip("/")
+
+    # 호스트 최소 유효성 체크 (도메인에 점 포함)
+    try:
+        parsed = urlparse(v)
+        host = parsed.netloc
+        if not host or "." not in host:
+            return None
+        return v
+    except Exception:
+        return None
+
+
+def _pick_from(d: dict) -> str | None:
+    for key in ("url", "homepage_url", "homepageUrl", "homepage",
+                "website", "website_url", "link", "Link"):
+        val = d.get(key)
+        if isinstance(val, str) and val.strip():
+            u = _normalize_url(val)
+            if u:
+                return u
+    return None
+
+
+def _extract_url(obj) -> str | None:
+    # Django 모델
+    if hasattr(obj, "_meta"):
+        for attr in ("url", "homepage_url", "website", "link"):
+            if hasattr(obj, attr):
+                u = _normalize_url(getattr(obj, attr, None))
+                if u:
+                    return u
+        obj = model_to_dict(obj)
+
+    # dict
+    if isinstance(obj, dict):
+        u = _pick_from(obj)
+        if u:
+            return u
+        for nest in ("scholarship", "meta", "data"):
+            inner = obj.get(nest)
+            if isinstance(inner, dict):
+                u = _pick_from(inner)
+                if u:
+                    return u
+    return None
+
+
+def _resolve_url_from_product_id(pid: str | int) -> str | None:
+    """product_id 기준으로 RawScholarship에서 URL을 찾아 정규화해 반환"""
+    if not pid:
+        return None
+    try:
+        raw = RawScholarship.objects.get(product_id=pid)
+        return _normalize_url(getattr(raw, "url", None))
+    except RawScholarship.DoesNotExist:
+        return None
+# -------------------------------------------------------------
+
 
 def get_processed_region_from_text(text: str) -> str:
     """주어진 텍스트를 GPT로 분석하여 정형화된 지역명을 반환합니다."""
     if not text or text.strip().lower() in ["", "해당없음"]:
         return "전국"
-    
+
     if not openai.api_key:
         print("경고: OpenAI API 키가 설정되지 않아 지역 처리를 건너뜁니다.")
         return ""
 
     system_prompt = """
     당신은 한국 행정구역 전문가이며, 장학금 공고문에서 지역 조건을 분석하는 AI입니다.
-    주어진 텍스트에서 해당하는 모든 지역명을 '특별시/광역시/도' 뿐만 아니라 '시/군/구' 단위까지 포함하여, **가장 구체적인 전체 경로(full path)로** 쉼표(,)로 구분된 단일 문자열로 반환해야 합니다.
-
-    **규칙 및 예시:**
-    1.  **전체 경로로 변환:** '영월군' -> '강원도 영월군', '수원시' -> '경기도 수원시'
-    2.  **약어 변환:** '서울' -> '서울특별시', '충남' -> '충청남도'
-    3.  **복합 경로 처리:** '충청남북도' -> '충청남도,충청북도'
-    4.  **구체적인 주소 유지:**
-        - "강원도 영월군 주천면" -> "강원도 영월군 주천면"
-        - "전라남도 화순군 거주" -> "전라남도 화순군"
-    5.  **예외 조건 처리:**
-        - "서울, 광역시 제외 전국" -> 경기도,강원도,충청북도,충청남도,전라북도,전라남도,경상북도,경상남도,제주특별자치도,세종특별자치시
-        - "온라인 과정 이수자" 또는 "해외 유학생" -> "온라인" 또는 "해외"
-    6.  **지역명 미포함 시:** 특정 지역이 명시되지 않았으면 "전국"으로 간주합니다.
-    7.  **출력 형식:** 다른 설명 없이 오직 쉼표로 구분된 지역명 문자열만 반환하세요.
-
-    이제 분석을 시작합니다.
+    주어진 텍스트에서 해당하는 모든 지역명을 '특별시/광역시/도' 뿐만 아니라 '시/군/구' 단위까지 포함하여, **가장 구체적인 전체 경로(full path)로** 쉼표(,)로 구분된 단일 문자열로 반환하세요.
+    지역이 명시되지 않으면 '전국'으로.
     """
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": text}
+                {"role": "user", "content": text},
             ],
             temperature=0.0,
-            timeout=15
+            timeout=15,
         )
-        result = response.choices[0].message['content'].strip()
-        return result.split('\n')[0]
+        result = response.choices[0].message["content"].strip()
+        return result.split("\n")[0]
     except Exception as e:
         print(f"오류: GPT 지역 처리 중 오류 발생 - {e}")
         return ""
 
+
+# ======================= 리스트(전체 장학금) =======================
 class ScholarshipListView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        # 로컬 페이지네이션에만 사용
         try:
-            page = int(request.query_params.get("page", 1))
-            per_page = int(request.query_params.get("perPage", 10))
-        except (ValueError, TypeError):
-            page, per_page = 1, 10
+            qs = RawScholarship.objects.all()
 
-        search_query  = (request.query_params.get("search", "") or "").strip().lower()
-        selected_type = (request.query_params.get("type", "")   or "").strip()
-        sort_order    = (request.query_params.get("sort", "")   or "").strip()
+            search_query = request.query_params.get("search", "")
+            selected_type = request.query_params.get("type", "")
+            sort_order = request.query_params.get("sort", "")
 
-        # 서비스 키 디코딩 (이중 인코딩 방지)
-        try:
-            decoded_service_key = urllib.parse.unquote(SERVICE_KEY)
-        except Exception:
-            decoded_service_key = SERVICE_KEY
+            if search_query:
+                qs = qs.filter(
+                    Q(name__icontains=search_query) |
+                    Q(foundation_name__icontains=search_query)
+                )
 
-        # ---------- 전체 수집 ----------
-        FETCH_PER_PAGE = 1000   # ODcloud 최대 가까운 값
-        MAX_ROUNDS     = 50     # 안전장치 (최대 5만건)
-        all_rows = []
+            if selected_type:
+                qs = qs.filter(product_type=selected_type)
 
-        # 1페이지: totalCount 파악용
-        params = {
-            "serviceKey": decoded_service_key,
-            "page": 1,                   # ← 외부 호출에는 내부 페이징만 사용
-            "perPage": FETCH_PER_PAGE,   #   크게 가져와서 우리가 자름
-            "returnType": "JSON",
-        }
-        try:
-            first = requests.get(API_URL, params=params, timeout=30)
-            first.raise_for_status()
-            first_json = first.json()
-        except Exception as e:
-            print(f"[ScholarshipListView] 1차 호출 실패: {e}")
-            return Response({"error": "외부 API 호출 실패"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            if sort_order == "end_date":
+                qs = qs.order_by("recruitment_end")
 
-        total_count = int(first_json.get("totalCount", 0) or 0)
-        all_rows.extend(first_json.get("data", []) or [])
-
-        import math
-        total_pages = max(1, math.ceil(total_count / FETCH_PER_PAGE))
-        cur, rounds = 2, 1
-        while cur <= total_pages and rounds < MAX_ROUNDS:
             try:
-                p = {
-                    "serviceKey": decoded_service_key,
-                    "page": cur,
-                    "perPage": FETCH_PER_PAGE,
-                    "returnType": "JSON",
-                }
-                r = requests.get(API_URL, params=p, timeout=30)
-                r.raise_for_status()
-                js = r.json()
-                all_rows.extend(js.get("data", []) or [])
-            except Exception as e:
-                print(f"[ScholarshipListView] 페이지 {cur} 수집 실패: {e}")
-                break
-            cur += 1
-            rounds += 1
+                page = int(request.query_params.get("page", 1))
+                per_page = int(request.query_params.get("perPage", 10))
+            except (ValueError, TypeError):
+                page, per_page = 1, 10
 
-        # ---------- 전체 기준 필터/검색/정렬 ----------
-        filtered = all_rows
+            total = qs.count()
+            start = max(0, (page - 1) * per_page)
+            end = start + per_page
+            page_rows = qs[start:end]
 
-        # 검색(상품명 포함)
-        if search_query:
-            filtered = [row for row in filtered
-                        if search_query in (row.get("상품명") or "").lower()]
+            data = RawScholarshipSerializer(page_rows, many=True).data
+            return Response({"data": data, "total": total}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"[ScholarshipListView] DB 조회 실패: {e}")
+            return Response({"error": "데이터를 불러오는 중 오류가 발생했습니다."},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # 유형(외부 응답의 '학자금유형구분' 과 일치하는 값만)
-        if selected_type:
-            filtered = [row for row in filtered
-                        if (row.get("학자금유형구분") or "") == selected_type]
 
-        # 정렬
-        if sort_order == "end_date":
-            def parse_end(d):
-                try:
-                    return datetime.strptime(d, "%Y-%m-%d")
-                except Exception:
-                    return datetime.max  # 없는 건 뒤로
-            filtered.sort(key=lambda x: parse_end(x.get("모집종료일") or ""))
-
-        # ---------- 로컬 페이지네이션 ----------
-        total_after = len(filtered)
-        start = max(0, (page - 1) * per_page)
-        end   = start + per_page
-        page_rows = filtered[start:end]
-
-        return Response(
-            {
-                "data": page_rows,       # 현재 페이지 데이터
-                "total": total_after,    # 필터/검색/정렬 적용 후 전체 개수
-            },
-            status=status.HTTP_200_OK,
-        )
-
+# =========================== 위시리스트 ===========================
 class ToggleWishlistAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -194,9 +208,8 @@ class UserWishlistAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        wishlist_items = Wishlist.objects.filter(user=request.user).order_by('-added_at')
-        serializer = WishlistSerializer(wishlist_items, many=True)
-        return Response(serializer.data)
+        items = Wishlist.objects.filter(user=request.user).order_by("-added_at")
+        return Response(WishlistSerializer(items, many=True).data)
 
 
 class AddToWishlistFromAPI(APIView):
@@ -204,59 +217,86 @@ class AddToWishlistFromAPI(APIView):
 
     def post(self, request):
         data = request.data
-        
-        name = data.get("상품명")
-        if not name:
-            return Response({"error": "상품명(name)은 필수입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        foundation = data.get("운영기관명")
-        product_id = f"{name}_{foundation}"
+        product_id = data.get("product_id") or f"{data.get('name', '')}_{data.get('foundation_name', '')}"
+        if not product_id:
+            return Response({"error": "product_id 또는 장학금 정보(name, foundation_name)는 필수입니다."},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         scholarship, created = Scholarship.objects.get_or_create(product_id=product_id)
 
         if created:
-            residency_text = data.get("지역거주여부", "")
-            
-            processed_region = get_processed_region_from_text(residency_text)
+            residency_text = (
+                data.get("residency_requirement_details", "")
+                or data.get("지역거주여부 상세내용", "")
+            )
 
             def parse_date_safely(date_str):
                 if date_str and isinstance(date_str, str):
                     try:
-                        return parse_date(date_str.split('~')[0].strip())
+                        return parse_date(date_str.split("~")[0].strip())
                     except ValueError:
                         return None
                 return None
 
-            scholarship.name = name
-            scholarship.foundation_name = foundation
-            scholarship.recruitment_start = parse_date_safely(data.get("모집시작일"))
-            scholarship.recruitment_end = parse_date_safely(data.get("모집종료일"))
-            scholarship.university_type = data.get("대학구분", "")
-            scholarship.product_type = data.get("학자금유형구분", "")
-            scholarship.grade_criteria_details = data.get("성적기준 상세내용", "")
-            scholarship.income_criteria_details = data.get("소득기준 상세내용", "")
-            scholarship.support_details = data.get("지원내역 상세내용", "")
-            scholarship.specific_qualification_details = data.get("특정자격 상세내용", "")
+            scholarship.name = data.get("name")
+            scholarship.foundation_name = data.get("foundation_name")
+            scholarship.recruitment_start = parse_date_safely(data.get("recruitment_start"))
+            scholarship.recruitment_end = parse_date_safely(data.get("recruitment_end"))
+            scholarship.university_type = data.get("university_type", "")
+            scholarship.product_type = data.get("product_type", "")
+
+            scholarship.grade_criteria_details = data.get("grade_criteria_details", "")
+            scholarship.income_criteria_details = data.get("income_criteria_details", "")
+            scholarship.support_details = data.get("support_details", "")
+            scholarship.specific_qualification_details = data.get("specific_qualification_details", "")
             scholarship.residency_requirement_details = residency_text
-            scholarship.selection_method_details = data.get("선발방법 상세내용", "")
-            scholarship.number_of_recipients_details = data.get("선발인원 상세내용", "")
-            scholarship.eligibility_restrictions = data.get("자격제한 상세내용", "")
-            scholarship.required_documents_details = data.get("제출서류 상세내용", "")
-            scholarship.recommendation_required = data.get("추천필요여부 상세내용", "") == "필요"
-            scholarship.major_field = data.get("학과구분", "")
-            scholarship.academic_year_type = data.get("학년구분", "")
-            scholarship.managing_organization_type = data.get("운영기관구분", "")
-            
+            scholarship.selection_method_details = (
+                data.get("selection_method_details", "") or data.get("선발방법 상세내용", "")
+            )
+            scholarship.number_of_recipients_details = (
+                data.get("number_of_recipients_details", "") or data.get("선발인원 상세내용", "")
+            )
+            scholarship.eligibility_restrictions = (
+                data.get("eligibility_restrictions", "") or data.get("자격제한 상세내용", "")
+            )
+            scholarship.required_documents_details = (
+                data.get("required_documents_details", "") or data.get("제출서류 상세내용", "")
+            )
+            scholarship.recommendation_required = (
+                data.get("recommendation_required", False)
+                or (data.get("추천필요여부 상세내용", "") == "필요")
+            )
+            scholarship.major_field = data.get("major_field", "") or data.get("학과구분", "")
+            scholarship.academic_year_type = data.get("academic_year_type", "") or data.get("학년구분", "")
+            scholarship.managing_organization_type = data.get("managing_organization_type", "") or data.get("운영기관구분", "")
+
+            for cand in [
+                data.get("url"),
+                data.get("homepage_url"),
+                data.get("website"),
+                data.get("website_url"),
+                data.get("link"),
+                data.get("Link"),
+            ]:
+                u = _normalize_url(cand) if isinstance(cand, str) else None
+                if u:
+                    scholarship.url = u
+                    break
+
+            try:
+                processed_region = get_processed_region_from_text(residency_text)
+            except Exception:
+                processed_region = ""
             scholarship.region = processed_region
             scholarship.is_region_processed = True
-            
-            scholarship.save()
-            print(f"DEBUG: 새로운 장학금 '{name}' 생성 및 지역 처리 완료. 지역: '{processed_region}'")
 
-        wishlist, wishlist_created = Wishlist.objects.get_or_create(user=request.user, scholarship=scholarship)
-        
-        return Response({"status": "added" if wishlist_created else "exists"}, status=status.HTTP_200_OK)
-    
+            scholarship.save()
+
+        wishlist, created_w = Wishlist.objects.get_or_create(user=request.user, scholarship=scholarship)
+        return Response({"status": "added" if created_w else "exists"}, status=status.HTTP_200_OK)
+
+
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def remove_from_wishlist(request, pk):
@@ -277,46 +317,71 @@ class MyCalendarView(APIView):
         return Response(serializer.data)
 
 
-@api_view(['GET'])
+# ======================= 추천 장학금(API) =======================
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_recommended_scholarships_api(request):
     print(f"DEBUG: [get_recommended_scholarships_api] 호출됨. 사용자: {request.user.username}, ID: {request.user.id}")
 
     try:
+        # 프로필 유효성
         try:
             user_profile = UserScholarship.objects.get(user=request.user)
-            full_region = ' '.join(filter(None, [user_profile.region, user_profile.district]))
-
-            print(f"DEBUG: [get_recommended_scholarships_api] 사용자 프로필 로드 성공: {user_profile.name}, 대학: '{user_profile.university_type}', 학년 유형: '{user_profile.academic_year_type}', 학과: '{user_profile.major_field}', 지역: '{full_region}'")
+            full_region = " ".join(filter(None, [user_profile.region, user_profile.district]))
+            print(f"DEBUG: 프로필 OK: {user_profile.name}, 지역: {full_region}")
         except UserScholarship.DoesNotExist:
-            print(f"오류: [get_recommended_scholarships_api] 사용자 ID {request.user.id}에 해당하는 UserScholarship 프로필이 없습니다.")
             return Response(
-                {'error': '사용자 프로필을 찾을 수 없습니다. 장학금 추천을 위해 프로필을 먼저 작성해주세요.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        except Exception as e:
-            print(f"오류: [get_recommended_scholarships_api] UserScholarship 조회 중 예상치 못한 오류 발생: {e}")
-            import traceback
-            traceback.print_exc()
-            return Response(
-                {'error': '사용자 프로필 조회 중 오류가 발생했습니다.'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "사용자 프로필을 찾을 수 없습니다. 장학금 추천을 위해 프로필을 먼저 작성해주세요."},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
-        recommended_scholarships_queryset = recommend(request.user.id) 
-        
-        recommended_scholarships_data = [
-            scholarship.to_dict() for scholarship in recommended_scholarships_queryset
-        ]
-        print(f"DEBUG: [get_recommended_scholarships_api] 추천 장학금 데이터 생성 완료. 개수: {len(recommended_scholarships_data)}")
+        rec = recommend(request.user.id)
 
-        return Response({'scholarships': recommended_scholarships_data}, status=status.HTTP_200_OK)
+        # (1) 추천 결과가 product_id들의 리스트/이터러블인 경우
+        try:
+            if rec and all(isinstance(x, (str, int)) for x in rec):
+                qs = Scholarship.objects.filter(product_id__in=rec)
+                data = ScholarshipSerializer(qs, many=True).data
+                for d in data:
+                    # 1차: 직렬화 값/내부키에서 추출
+                    d["url"] = _extract_url(d) or d.get("url") or None
+                    # 2차: 비어있으면 RawScholarship에서 폴백
+                    if not d.get("url"):
+                        d["url"] = _resolve_url_from_product_id(d.get("product_id"))
+                return Response({"scholarships": data}, status=status.HTTP_200_OK)
+        except Exception:
+            # 형태 판별 실패 시 아래 일반 경로로 진행
+            pass
+
+        # (2) 모델/딕셔너리 혼합 목록
+        out = []
+        for row in (rec or []):
+            # 직렬화
+            if hasattr(row, "_meta"):  # Django 모델
+                try:
+                    d = ScholarshipSerializer(row).data if isinstance(row, Scholarship) else model_to_dict(row)
+                except Exception:
+                    d = model_to_dict(row)
+            elif isinstance(row, dict):
+                d = dict(row)
+            else:
+                d = {"name": str(row)}
+
+            # URL 주입: 추출 → 폴백(RawScholarship) → 기존값
+            d["url"] = _extract_url(row) or _extract_url(d) or d.get("url") or None
+            if not d.get("url"):
+                d["url"] = _resolve_url_from_product_id(d.get("product_id"))
+
+            out.append(d)
+
+        print(f"DEBUG: 추천 장학금 개수: {len(out)}")
+        return Response({"scholarships": out}, status=status.HTTP_200_OK)
 
     except Exception as e:
-        print(f"오류: [get_recommended_scholarships_api] 장학금 추천 API 실행 중 최종 오류 발생: {e}")
         import traceback
         traceback.print_exc()
         return Response(
-            {'error': f'장학금 추천 중 오류가 발생했습니다. 다시 시도해 주세요. ({e})'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"error": f"장학금 추천 중 오류가 발생했습니다. 다시 시도해 주세요. ({e})"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
