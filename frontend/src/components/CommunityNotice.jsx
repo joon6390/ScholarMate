@@ -4,28 +4,29 @@ import { FaChevronRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import axios from "../api/axios";
 
-// YYYY.MM.DD (NaN 방지)
+// YYYY.MM.DD
 const formatDate = (iso) => {
   if (!iso) return "";
   const d = new Date(iso);
-  if (isNaN(d.getTime())) return "";
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}.${mm}.${dd}`;
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
 };
 
-// 응답 정규화
+// 응답 정규화 (likes_count / comments_count까지 흡수)
 const normalizeList = (raw) => {
   const list = Array.isArray(raw) ? raw : raw?.results ?? [];
   return list.map((it) => ({
     id: it.id ?? it.pk ?? it.post_id,
     title: it.title ?? it.scholarshipName ?? it.name ?? "제목 없음",
     scholarship_name: it.scholarship_name ?? it.scholarshipName ?? it.scholarship ?? "",
-    created_at: it.created_at ?? it.createdAt ?? it.created ?? it.updated_at ?? null,
-    like_count: Number(it.like_count ?? it.likes_count ?? it.likes ?? it.likeCount ?? 0) || 0,
-    comment_count: Number(it.comment_count ?? it.comments_count ?? it.comments ?? it.commentCount ?? 0) || 0,
-    view_count: Number(it.view_count ?? it.views ?? it.viewCount ?? 0) || 0,
+    created_at:
+      it.created_at ?? it.createdAt ?? it.created ?? it.updated_at ?? new Date().toISOString(),
+    like_count:
+      it.like_count ?? it.likes_count ?? it.likes ?? it.likeCount ?? 0,
+    comment_count:
+      it.comment_count ?? it.comments_count ?? it.comments ?? it.commentCount ?? 0,
+    view_count: it.view_count ?? it.views ?? it.viewCount ?? 0,
   }));
 };
 
@@ -36,32 +37,35 @@ const Stat = ({ icon, value, title }) => (
 );
 
 const CommunityNotice = () => {
+  // 커뮤니티 원본 최신 리스트(최대 10개 받아두면 여유있게 필터링 가능)
   const [communityItems, setCommunityItems] = useState([]);
   const [communityLoading, setCommunityLoading] = useState(true);
   const [communityError, setCommunityError] = useState(null);
 
+  // 커뮤니티 인기 1개
   const [popularItem, setPopularItem] = useState(null);
   const [popularLoading, setPopularLoading] = useState(true);
 
+  // 공지
   const [pinnedItem, setPinnedItem] = useState(null);
   const [latestItems, setLatestItems] = useState([]);
   const [noticeLoading, setNoticeLoading] = useState(true);
   const [noticeError, setNoticeError] = useState(null);
 
-  // 커뮤니티 최신
+  // 커뮤니티 최신 글
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
         setCommunityLoading(true);
         setCommunityError(null);
-        let res = await axios.get("community/posts/", {
+        let res = await axios.get("/api/community/posts/", {
           params: { page_size: 10, ordering: "-created_at" },
         });
         let items = normalizeList(res.data);
         if (items.length === 0) {
           try {
-            res = await axios.get("community/", {
+            res = await axios.get("/api/community/", {
               params: { page_size: 10, ordering: "-created_at" },
             });
             items = normalizeList(res.data);
@@ -82,7 +86,7 @@ const CommunityNotice = () => {
     return () => { alive = false; };
   }, []);
 
-  // 인기 1개
+  // 커뮤니티 인기 1개
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -90,15 +94,16 @@ const CommunityNotice = () => {
         setPopularLoading(true);
         let res;
         try {
-          res = await axios.get("community/popular/", { params: { page_size: 1 } });
+          res = await axios.get("/api/community/popular/", { params: { page_size: 1 } });
         } catch { /* fallthrough */ }
         if (!res) {
           try {
-            res = await axios.get("community/posts/", { params: { page_size: 20, ordering: "-like_count" } });
+            // like_count 정렬 지원 안 하면 프론트가 fallback 정렬
+            res = await axios.get("/api/community/posts/", { params: { page_size: 20, ordering: "-like_count" } });
           } catch { /* fallthrough */ }
         }
         if (!res) {
-          res = await axios.get("community/posts/", { params: { page_size: 20, ordering: "-created_at" } });
+          res = await axios.get("/api/community/posts/", { params: { page_size: 20, ordering: "-created_at" } });
         }
         const list = normalizeList(res.data);
         const best = list.sort((a,b)=> (b.like_count-a.like_count) || (b.view_count-a.view_count))[0];
@@ -110,21 +115,19 @@ const CommunityNotice = () => {
     return () => { alive = false; };
   }, []);
 
-  // 공지
+  // 공지사항
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
         setNoticeLoading(true); setNoticeError(null);
-        const { data } = await axios.get("notices/", {
+        const { data } = await axios.get("/api/notices/", {
           params: { page_size: 20, ordering: "-is_pinned,-created_at" },
         });
         if (!alive) return;
         const items = data?.results ?? [];
         const pinned = items.find(n=>n.is_pinned) ?? null;
-        const others = items
-          .filter(n=>!n.is_pinned)
-          .sort((a,b)=> new Date(b.created_at) - new Date(a.created_at));
+        const others = items.filter(n=>!n.is_pinned).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
         setPinnedItem(pinned);
         setLatestItems(pinned ? others.slice(0,4) : others.slice(0,5));
       } catch (e) {
@@ -137,6 +140,8 @@ const CommunityNotice = () => {
     return () => { alive = false; };
   }, []);
 
+  // ===== 커뮤니티 표시용 목록 계산 =====
+  // 인기글이 있으면 최신 목록에서 중복 제거 후 4개, 없으면 5개
   const communityLatestForRender = useMemo(() => {
     const base = [...communityItems];
     const filtered = popularItem ? base.filter(p => p.id !== popularItem.id) : base;
@@ -152,6 +157,7 @@ const CommunityNotice = () => {
           <Link to="/community" className="text-[0.9rem] text-[#111] hover:underline">더보기 +</Link>
         </div>
 
+        {/* 고정(인기) 1개 */}
         {!popularLoading && popularItem && (
           <>
             <div className="mb-3 p-3 rounded-md bg-yellow-50 border border-yellow-200">
@@ -180,6 +186,7 @@ const CommunityNotice = () => {
           </>
         )}
 
+        {/* 최신 4개(인기 있을 때) / 최신 5개(없을 때) */}
         {communityLoading ? (
           <ul className="list-none p-0">
             {[...Array(5)].map((_,i)=>(
