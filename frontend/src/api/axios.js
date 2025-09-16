@@ -5,18 +5,15 @@ import isTokenExpired from "./auth";
 /**
  * Axios 공통 인스턴스 (JWT Bearer + 자동 리프레시)
  *
- * 환경변수:
- *  - VITE_API_BASE_URL         : 백엔드 베이스 URL (예: http://34.228.112.95)
- *  - VITE_WITH_CREDENTIALS     : "true"면 쿠키 사용 (기본은 false)
+ * 운영(Vercel): '/api' → vercel.json의 rewrites가 백엔드로 프록시
+ * 로컬(Vite): '/api' → vite.config.js proxy가 VITE_API_BASE_URL로 프록시
  */
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://34.228.112.95",
+  baseURL: "/api",            // ✅ 핵심: 절대 URL 대신 '/api' 고정
   timeout: 15000,
   withCredentials:
     String(import.meta.env.VITE_WITH_CREDENTIALS || "").toLowerCase() === "true",
-  headers: {
-    Accept: "application/json",
-  },
+  headers: { Accept: "application/json" },
 });
 
 const TOKEN_KEY = "token";
@@ -49,17 +46,21 @@ function logoutAndRedirect() {
 /**
  * NOTE:
  *  - 인터셉터 재귀를 피하려고 기본 axios 로 호출
- *  - /auth/jwt/refresh/ 엔드포인트는 Bearer 불필요
+ *  - '/api/auth/jwt/refresh/' 는 Bearer 불필요
  */
 async function refreshAccessToken() {
   const refreshToken = getRefresh();
   if (!refreshToken) throw new Error("NO_REFRESH_TOKEN");
 
+  // baseURL '/api' 기준으로 절대 URL 구성
   const url = `${instance.defaults.baseURL}/auth/jwt/refresh/`;
   const { data } = await axios.post(
     url,
     { refresh: refreshToken },
-    { headers: { "Content-Type": "application/json" }, withCredentials: instance.defaults.withCredentials }
+    {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: instance.defaults.withCredentials,
+    }
   );
 
   const newAccess = data?.access;
@@ -74,9 +75,13 @@ instance.interceptors.request.use(
     // 기본 Content-Type 지정 (이미 설정돼 있으면 유지)
     if (
       !config.headers ||
-      (config.method && ["post", "put", "patch"].includes(config.method.toLowerCase()))
+      (config.method &&
+        ["post", "put", "patch"].includes(config.method.toLowerCase()))
     ) {
-      config.headers = { "Content-Type": "application/json", ...(config.headers || {}) };
+      config.headers = {
+        "Content-Type": "application/json",
+        ...(config.headers || {}),
+      };
     } else {
       config.headers = { ...(config.headers || {}) };
     }
@@ -97,7 +102,9 @@ instance.interceptors.request.use(
     if (accessToken && isTokenExpired(accessToken) && !isRefreshCall) {
       if (!refreshToken) {
         logoutAndRedirect();
-        return Promise.reject(new Error("Access token expired and no refresh token"));
+        return Promise.reject(
+          new Error("Access token expired and no refresh token")
+        );
       }
       if (!refreshPromise) {
         refreshPromise = refreshAccessToken()
@@ -127,10 +134,7 @@ instance.interceptors.response.use(
     if (!original || !status) return Promise.reject(error);
 
     // refresh 호출 자체가 실패한 401이면 바로 로그아웃
-    if (
-      original?.url?.includes("/auth/jwt/refresh/") &&
-      status === 401
-    ) {
+    if (original?.url?.includes("/auth/jwt/refresh/") && status === 401) {
       logoutAndRedirect();
       return Promise.reject(error);
     }
@@ -158,8 +162,7 @@ instance.interceptors.response.use(
 
         original.headers = original.headers || {};
         original.headers.Authorization = `Bearer ${newAccess}`;
-        // baseURL/withCredentials 등 기존 설정 유지
-        return instance(original);
+        return instance(original); // baseURL '/api' 유지
       } catch (e) {
         return Promise.reject(e);
       }
