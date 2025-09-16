@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "../api/axios";
 import { useNavigate, useLocation } from "react-router-dom";
+import logo from "../assets/img/로고.png";
 
 export default function Login() {
   const [form, setForm] = useState({ username: "", password: "" });
@@ -493,7 +494,7 @@ export default function Login() {
         <div className="w-[520px] max-w-[92vw] rounded-xl border border-gray-200 shadow-sm bg-white">
           <div className="px-10 pt-10 pb-8">
             <div className="w-full flex flex-col items-center mb-8">
-              <img src="src/assets/img/로고.png" alt="로고" className="h-40 object-contain" />
+              <img src={logo} alt="로고" className="h-40 object-contain" />
             </div>
 
             <h2 className="font-bold text-xl mb-4 text-center">로그인</h2>
