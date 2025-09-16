@@ -23,7 +23,8 @@ export default function CardSection() {
   ];
 
   return (
-    <section className="py-20 bg-white w-full">
+    // 👇 여기 id="functions" 추가
+    <section id="functions" className="py-20 bg-white w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-gray-900">주요 기능</h2>
@@ -43,7 +44,9 @@ export default function CardSection() {
                 alt={card.title}
                 className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-300"
               />
-              <h3 className="text-xl font-semibold mb-2 text-gray-900">{card.title}</h3>
+              <h3 className="text-xl font-semibold mb-2 text-gray-900">
+                {card.title}
+              </h3>
               <p className="text-gray-600">{card.description}</p>
             </div>
           ))}

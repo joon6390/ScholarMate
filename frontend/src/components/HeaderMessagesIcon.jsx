@@ -198,7 +198,7 @@ export default function HeaderMessagesIcon({ intervalMs = 60000 }) {
                 }}
               >
                 <div className="text-sm font-medium truncate">
-                  {c.other || "대화상대"}
+                  {c.other || "알 수 없음"}
                 </div>
                 <div className="text-xs text-gray-500 truncate">{c.last}</div>
                 <div className="text-[11px] text-gray-400 mt-0.5">

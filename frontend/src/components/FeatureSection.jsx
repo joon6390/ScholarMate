@@ -26,11 +26,14 @@ export default function FeatureSection() {
   ];
 
   return (
-    <section className="py-20 bg-gray-50 w-full">
+    // 👇 id="features" 추가
+    <section id="features" className="py-20 bg-gray-50 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-gray-900">시스템 특징</h2>
-          <p className="mt-4 text-lg text-gray-600">더 스마트한 장학금 관리를 경험하세요</p>
+          <p className="mt-4 text-lg text-gray-600">
+            더 스마트한 장학금 관리를 경험하세요
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -39,7 +42,9 @@ export default function FeatureSection() {
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-black mb-4">
                 {item.icon}
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-900">{item.title}</h3>
+              <h3 className="text-lg font-semibold mb-2 text-gray-900">
+                {item.title}
+              </h3>
               <p className="text-gray-600">{item.description}</p>
             </div>
           ))}
