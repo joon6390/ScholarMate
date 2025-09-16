@@ -8,6 +8,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import (
     F, Count, Exists, OuterRef, Value, BooleanField, Q, Subquery
 )
+from django.shortcuts import get_object_or_404
 
 from .models import (
     Post, Comment, PostLike, PostBookmark,
@@ -57,7 +58,7 @@ class PostViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         if self.action in ["update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsAuthorOrReadOnly()]
-        return [IsAuthenticated()]  # create, like, bookmark 등
+        return [IsAuthenticated()]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -115,12 +116,14 @@ class CommentViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         if self.action in ["update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsAuthorOrReadOnly()]
-        return [IsAuthenticated()]  # create
+        return [IsAuthenticated()]
 
 
 # === 1:1 대화 ===
 class ConversationViewSet(mixins.ListModelMixin,
+                          mixins.RetrieveModelMixin,   # ✅ 상세 조회 추가
                           mixins.CreateModelMixin,
+                          mixins.DestroyModelMixin,    # ✅ 삭제(나가기)
                           viewsets.GenericViewSet):
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated]
@@ -143,6 +146,7 @@ class ConversationViewSet(mixins.ListModelMixin,
                     "messages",
                     filter=Q(messages__is_read=False) & ~Q(messages__sender_id=user.id),
                 ),
+                participant_count=Count("participants", distinct=True),   # ✅ 남은 인원
             )
             .order_by("-latest_time", "-created_at")
         )
@@ -184,12 +188,32 @@ class ConversationViewSet(mixins.ListModelMixin,
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
         )
 
-    # 🔻 읽음 처리 액션 (핵심)
+    # 삭제(나가기)
+    def destroy(self, request, pk=None):
+        conv = get_object_or_404(
+            Conversation.objects.prefetch_related("participants").filter(participants=request.user),
+            pk=pk
+        )
+        conv.participants.remove(request.user)
+        if conv.participants.count() == 0:
+            conv.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    # 나가기 액션 (프론트 폴백용)
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    def leave(self, request, pk=None):
+        conv = get_object_or_404(
+            Conversation.objects.prefetch_related("participants").filter(participants=request.user),
+            pk=pk
+        )
+        conv.participants.remove(request.user)
+        if conv.participants.count() == 0:
+            conv.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    # 읽음 처리
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
     def mark_read(self, request, pk=None):
-        """
-        이 대화에서 '상대가 보낸' 미읽음 메시지를 모두 읽음 처리한다.
-        """
         try:
             conv = Conversation.objects.prefetch_related("participants").get(pk=pk)
         except Conversation.DoesNotExist:
@@ -226,11 +250,21 @@ class DirectMessageViewSet(mixins.ListModelMixin,
             return Response({"detail": "conversation 필수"}, status=400)
 
         try:
-            conv = Conversation.objects.get(id=conv_id)
+            conv = Conversation.objects.prefetch_related("participants").get(id=conv_id)
         except Conversation.DoesNotExist:
             return Response({"detail": "대화를 찾을 수 없습니다."}, status=404)
 
-        if not hasattr(conv, "participants") or not conv.participants.filter(id=request.user.id).exists():
+        # 내가 참가자인지
+        if not conv.participants.filter(id=request.user.id).exists():
             return Response({"detail": "이 대화에 참여자가 아닙니다."}, status=403)
 
+        # ✅ 상대가 없는 방이면 전송 차단
+        other_exists = conv.participants.exclude(id=request.user.id).exists()
+        if not other_exists:
+            return Response(
+                {"detail": "상대방이 대화방을 삭제하여 채팅이 불가합니다.", "code": "PARTNER_MISSING"},
+                status=409,  # Conflict
+            )
+
         return super().create(request, *args, **kwargs)
+

@@ -81,9 +81,14 @@ class ConversationSerializer(serializers.ModelSerializer):
     latest_message = serializers.CharField(read_only=True)
     latest_time = serializers.DateTimeField(read_only=True)
     unread_count = serializers.IntegerField(read_only=True)
+    participant_count = serializers.IntegerField(read_only=True)
 
     # ✔ 내가 아닌 상대방
     partner = serializers.SerializerMethodField()
+    # ✔ 추가 상태 필드
+    has_partner = serializers.SerializerMethodField()
+    can_message = serializers.SerializerMethodField()
+    disabled_reason = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
@@ -94,6 +99,10 @@ class ConversationSerializer(serializers.ModelSerializer):
             "latest_message",
             "latest_time",
             "unread_count",
+            "participant_count",
+            "has_partner",
+            "can_message",
+            "disabled_reason",
             "created_at",
         )
 
@@ -104,6 +113,18 @@ class ConversationSerializer(serializers.ModelSerializer):
             return None
         u = others[0]
         return {"id": u.id, "username": getattr(u, "username", str(u))}
+
+    def get_has_partner(self, obj):
+        count = getattr(obj, "participant_count", None)
+        if count is not None:
+            return count >= 2
+        return obj.participants.count() >= 2
+
+    def get_can_message(self, obj):
+        return self.get_has_partner(obj)
+
+    def get_disabled_reason(self, obj):
+        return None if self.get_has_partner(obj) else "상대방이 대화방을 삭제하여 채팅이 불가합니다."
 
 
 # =========================
