@@ -31,38 +31,38 @@ export default function HowItWorksSection() {
   ];
 
   return (
-    <section className="mt-24 py-20 bg-gray-50">
-  <div className="w-full px-0">
-    <div className="text-center mb-16">
-      <h2 className="text-3xl font-bold text-gray-900 mb-4">이용 방법</h2>
-      <p className="text-lg text-gray-600">
-        ScholarMate를 통해 맞춤형 장학금을 찾고 지원하는 과정을 알아보세요.
-      </p>
-    </div>
-
-    <div className="grid md:grid-cols-4 gap-8 px-6">
-      {steps.map((step, index) => (
-        <div
-          key={index}
-          className="bg-white p-6 rounded-lg shadow-sm text-center relative"
-        >
-          {index < steps.length - 1 && (
-            <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
-              <i className="fas fa-chevron-right text-black text-xl"></i>
-            </div>
-          )}
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            {step.icon}
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-3">
-            {step.title}
-          </h3>
-          <p className="text-gray-600">{step.description}</p>
+    // 👇 id="how-to" 추가
+    <section id="how-to" className="mt-24 py-20 bg-gray-50">
+      <div className="w-full px-0">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">이용 방법</h2>
+          <p className="text-lg text-gray-600">
+            ScholarMate를 통해 맞춤형 장학금을 찾고 지원하는 과정을 알아보세요.
+          </p>
         </div>
-      ))}
-    </div>
-  </div>
-</section>
 
+        <div className="grid md:grid-cols-4 gap-8 px-6">
+          {steps.map((step, index) => (
+            <div
+              key={index}
+              className="bg-white p-6 rounded-lg shadow-sm text-center relative"
+            >
+              {index < steps.length - 1 && (
+                <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+                  <i className="fas fa-chevron-right text-black text-xl"></i>
+                </div>
+              )}
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                {step.icon}
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
+                {step.title}
+              </h3>
+              <p className="text-gray-600">{step.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
