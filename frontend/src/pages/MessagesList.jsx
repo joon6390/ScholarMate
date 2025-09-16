@@ -72,7 +72,7 @@ export default function MessagesList() {
           <ul className="divide-y">
             {items.map((c) => {
               // 백엔드에서 partner 내려줌
-              const other = c.partner?.username ?? "대화상대";
+              const other = c.partner?.username ?? "알 수 없음";
 
               // 최신 메시지
               const last = c.latest_message ?? "";

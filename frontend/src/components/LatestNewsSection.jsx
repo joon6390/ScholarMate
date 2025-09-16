@@ -11,7 +11,7 @@ export default function LatestNewsSection() {
         "국가장학금 1유형/2유형을 포함한 공공재정 기반 장학금 제공, 다양한 봉사장학금, 우수인재 국가장학금, 다자녀장학금 등 운영",
       image: koreaImg,
       link: "https://www.kosaf.go.kr",
-      imgClass: "max-h-48", // 그대로 유지
+      imgClass: "max-h-48",
     },
     {
       date: "🌟 드림스폰 (DreamSpon)",
@@ -20,16 +20,19 @@ export default function LatestNewsSection() {
         "저소득층, 다문화, 탈북, 보호종료청년 등 사회적 배려계층 중심 지원, 단순한 금전 지원뿐만 아니라 멘토링, 진로상담, 정서 지원 등 포함",
       image: dreamsponImg,
       link: "https://www.dreamspon.com",
-      imgClass: "max-h-32", // 더 작게 조정
+      imgClass: "max-h-32",
     },
   ];
 
   return (
-    <section className="py-20 bg-white w-full">
+    // 👇 id="news" 추가
+    <section id="news" className="py-20 bg-white w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-gray-900">최신 소식</h2>
-          <p className="mt-4 text-lg text-gray-600">최신 장학금 소식을 확인하세요</p>
+          <p className="mt-4 text-lg text-gray-600">
+            최신 장학금 소식을 확인하세요
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -47,7 +50,9 @@ export default function LatestNewsSection() {
               </div>
               <div className="p-6 text-left">
                 <div className="text-sm text-gray-500 mb-2">{item.date}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {item.title}
+                </h3>
                 <p className="text-gray-600 mb-4">{item.description}</p>
                 <a
                   href={item.link}

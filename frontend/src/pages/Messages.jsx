@@ -204,7 +204,7 @@ export default function Messages() {
       setMsgs((prev) => prev.filter((m) => m.id !== optimistic.id));
       setText(body);
       antdMessage.error(
-        e?.response?.status === 401 ? "로그인이 필요합니다." : "전송 실패"
+        e?.response?.status === 401 ? "로그인이 필요합니다." : "상대방이 대화방을 나갔습니다."
       );
     }
   };
