@@ -125,7 +125,7 @@ DJOSER = {
         "set_password": ["rest_framework.permissions.IsAuthenticated"],
     },
     # ✅ Sites 미스매치로 500 방지: 도메인 강제 지정
-    "DOMAIN": os.getenv("FRONTEND_DOMAIN", "localhost:5173"),
+    "DOMAIN": os.getenv("FRONTEND_DOMAIN", "https://scholar-mate-pi.vercel.app"),
     "SITE_NAME": "ScholarMate",
 }
 
@@ -144,7 +144,7 @@ MIDDLEWARE = [
 # ===== CORS/CSRF =====
 CORS_ALLOWED_ORIGINS = os.environ.get(
     "CORS_ALLOWED_ORIGINS",
-    "http://localhost:5173,http://34.228.112.95",
+    "http://localhost:5173,http://34.228.112.95,https://scholar-mate-pi.vercel.app",
 ).split(",")
 CORS_ALLOW_CREDENTIALS = True
 
@@ -159,7 +159,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 
 CSRF_TRUSTED_ORIGINS = os.environ.get(
     "CSRF_TRUSTED_ORIGINS",
-    "http://localhost:5173,http://34.228.112.95",
+    "http://localhost:5173,http://34.228.112.95,https://scholar-mate-pi.vercel.app",
 ).split(",")
 
 ROOT_URLCONF = "ScholarMate_backend.urls"
