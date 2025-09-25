@@ -1,7 +1,7 @@
 import Slider from "react-slick";
 import { useNavigate } from "react-router-dom";
-import sliderImage1 from "../assets/img/main.jpg";
-import sliderImage2 from "../assets/img/배너.jpg";
+import sliderImage1 from "../assets/img/메인1.jpg";
+import sliderImage2 from "../assets/img/메인2.jpg";
 import "../assets/css/slider.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
