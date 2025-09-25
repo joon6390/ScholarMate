@@ -5,12 +5,14 @@
   "outputDirectory": "dist",
 
   "rewrites": [
-    { "source": "/api/(.*)",    "destination": "http://34.228.112.95/$1" },
+    { "source": "/api/(.*)",    "destination": "http://34.228.112.95/api/$1" },
     { "source": "/media/(.*)",  "destination": "http://34.228.112.95/media/$1" },
     { "source": "/static/(.*)", "destination": "http://34.228.112.95/static/$1" },
 
-    { "source": "/((?!.*\\.(?:js|css|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|map|json)).*)",
-      "destination": "/index.html" }
+    {
+      "source": "/((?!.*\\.(?:js|css|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|map|json)).*)",
+      "destination": "/index.html"
+    }
   ],
 
   "headers": [
