@@ -10,6 +10,7 @@ export default defineConfig({
         target: process.env.VITE_API_BASE_URL || 'http://34.228.112.95',
         changeOrigin: true,
         secure: false,
+        // ✅ 프론트의 /api/auth/... -> 백엔드의 /auth/... 로 전달
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
       '/media': {
@@ -26,10 +27,5 @@ export default defineConfig({
       },
     },
   },
-  // 🚀 배포 시 정적 파일 경로 인식 문제 해결
-  base: '/',            // 반드시 추가 (기본 public path)
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,  // 빌드 시 dist 폴더 초기화
-  },
+  build: { outDir: 'dist' },
 })
