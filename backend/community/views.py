@@ -267,4 +267,3 @@ class DirectMessageViewSet(mixins.ListModelMixin,
             )
 
         return super().create(request, *args, **kwargs)
-
