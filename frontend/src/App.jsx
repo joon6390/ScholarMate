@@ -42,7 +42,7 @@ export default function App() {
     }
   }, [location.pathname]);
 
-  // ===== 공통 Drawer Item (Link / button 통일) =====
+  // ===== 공통 Drawer Item =====
   const itemCls =
     "block w-full text-left px-3 py-2 rounded-lg text-gray-800 hover:bg-gray-100 active:bg-gray-200 transition";
   const DrawerItem = ({ to, onClick, children }) =>
@@ -56,29 +56,13 @@ export default function App() {
       </button>
     );
 
-  // ===== 강력 스크롤 헬퍼 =====
+  // ===== 무조건 중앙 정렬 스크롤 =====
   const scrollToSectionId = (sectionId) => {
     const el = document.getElementById(sectionId);
     if (!el) return false;
 
-    const headerH = document.querySelector(".header")?.offsetHeight || 80;
-    const container = document.querySelector("main.content");
-
-    // 기본 시도
-    try {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-    } catch (_) {
-      const topFallback = el.getBoundingClientRect().top + window.scrollY - headerH;
-      window.scrollTo({ top: topFallback, behavior: "smooth" });
-    }
-
-    // 컨테이너 스크롤 보정
-    if (container && getComputedStyle(container).overflowY !== "visible") {
-      const cRect = container.getBoundingClientRect();
-      const tRect = el.getBoundingClientRect();
-      const top = container.scrollTop + (tRect.top - cRect.top) - headerH;
-      container.scrollTo({ top, behavior: "smooth" });
-    }
+    // ✅ 항상 중앙에 보이도록
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
 
     return true;
   };
@@ -288,56 +272,12 @@ export default function App() {
       <main className="content">
         <Routes>
           <Route path="/" element={<Home />} />
-
-          <Route
-            path="/scholarships"
-            element={
-              <PrivateRoute isLoggedIn={isLoggedIn}>
-                <Scholarships />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/recommendation"
-            element={
-              <PrivateRoute isLoggedIn={isLoggedIn}>
-                <Recommendation />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/interest"
-            element={
-              <PrivateRoute isLoggedIn={isLoggedIn}>
-                <Wishlist />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/calendar"
-            element={
-              <PrivateRoute isLoggedIn={isLoggedIn}>
-                <CalendarPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/Userinfor"
-            element={
-              <PrivateRoute isLoggedIn={isLoggedIn}>
-                <Useinfor />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/community"
-            element={
-              <PrivateRoute isLoggedIn={isLoggedIn}>
-                <CommunityPage />
-              </PrivateRoute>
-            }
-          />
-
+          <Route path="/scholarships" element={<PrivateRoute isLoggedIn={isLoggedIn}><Scholarships /></PrivateRoute>} />
+          <Route path="/recommendation" element={<PrivateRoute isLoggedIn={isLoggedIn}><Recommendation /></PrivateRoute>} />
+          <Route path="/interest" element={<PrivateRoute isLoggedIn={isLoggedIn}><Wishlist /></PrivateRoute>} />
+          <Route path="/calendar" element={<PrivateRoute isLoggedIn={isLoggedIn}><CalendarPage /></PrivateRoute>} />
+          <Route path="/Userinfor" element={<PrivateRoute isLoggedIn={isLoggedIn}><Useinfor /></PrivateRoute>} />
+          <Route path="/community" element={<PrivateRoute isLoggedIn={isLoggedIn}><CommunityPage /></PrivateRoute>} />
           <Route path="/profile" element={isLoggedIn ? <Profile /> : <Navigate to="/login" />} />
           <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
           <Route path="/register" element={isLoggedIn ? <Navigate to="/" /> : <Register />} />
@@ -345,26 +285,8 @@ export default function App() {
           <Route path="/notice" element={<NoticeList />} />
           <Route path="/notice/:id" element={<NoticeDetail />} />
           <Route path="/community/:id" element={<CommunityDetail />} />
-
-          {/* /features, /functions, /how-to, /news, /contact 라우트는 만들지 않음 */}
-
-          {/* 쪽지 */}
-          <Route
-            path="/messages"
-            element={
-              <PrivateRoute isLoggedIn={isLoggedIn}>
-                <MessagesList />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/messages/:conversationId"
-            element={
-              <PrivateRoute isLoggedIn={isLoggedIn}>
-                <Messages />
-              </PrivateRoute>
-            }
-          />
+          <Route path="/messages" element={<PrivateRoute isLoggedIn={isLoggedIn}><MessagesList /></PrivateRoute>} />
+          <Route path="/messages/:conversationId" element={<PrivateRoute isLoggedIn={isLoggedIn}><Messages /></PrivateRoute>} />
         </Routes>
       </main>
     </>

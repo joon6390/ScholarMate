@@ -55,7 +55,7 @@ export default function PostComposeModal({
       onOk={onSubmit}
       okText="등록"
       cancelText="취소"
-      destroyOnClose
+      destroyOnHidden
       okButtonProps={{ className: "!bg-black !border-black" }}
     >
       <Form form={form} layout="vertical">

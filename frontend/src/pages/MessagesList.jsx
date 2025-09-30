@@ -60,7 +60,7 @@ export default function MessagesList() {
   };
 
   return (
-    <main className="pt-28 pb-20 w-[min(92vw,800px)] mx-auto">
+    <main className="pt-24 pb-20 w-[min(92vw,800px)] mx-auto">
       <Card title="쪽지함">
         {loading ? (
           <div className="py-12 flex justify-center">
