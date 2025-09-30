@@ -99,7 +99,7 @@ export default function NoticeDetail() {
   };
 
   return (
-    <main className="pt-28 pb-20 w-[min(92vw,900px)] mx-auto">
+    <main className="pt-24 pb-20 w-[min(92vw,900px)] mx-auto">
       <Link className="text-[#0B2D6B] underline" to="/notice">← 목록으로</Link>
 
       {loading ? (
@@ -151,7 +151,7 @@ export default function NoticeDetail() {
         onOk={submitEdit}
         okText="저장"
         confirmLoading={saving}
-        destroyOnClose
+        destroyOnHidden
         okButtonProps={{ className: "!bg-black !border-black !text-white hover:!bg-gray-800" }}
         cancelButtonProps={{ className: "!border-gray-400 hover:!border-gray-600" }}
       >

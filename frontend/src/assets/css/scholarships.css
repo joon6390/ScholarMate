@@ -19,25 +19,17 @@
   --modal-side-pad:16px;     /* 모달 좌우 여백(작은 화면 보호) */
 }
 
-/* ---------- Page shells ---------- */
-body.scholarships-page,
-body.wishlist-page{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding-top:var(--header-offset);
+.scholarships-container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 100px 20px 40px; 
 }
 
-.scholarships-container{
-  max-width:var(--container-max);
-  width:100%;
-  padding:20px;
-  text-align:center;
-}
-
-h1{
-  font-size:1.8rem;
-  margin-bottom:20px;
+.scholarships-container h1 {
+  font-size: 1.8rem;
+  margin: 10px 0 16px;  /* 위쪽 여백 최소화 */
+  text-align: center;
 }
 
 /* ---------- Search & filter ---------- */
@@ -205,7 +197,7 @@ h1{
 /* ---------- Wishlist ---------- */
 .wishlist-wrapper{
   max-width:900px;
-  margin:0 auto;
+  margin:100px auto;
   text-align:center;
   min-height:550px;
 }

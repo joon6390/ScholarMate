@@ -1,56 +1,70 @@
+/* 기본 스타일 (데스크탑) */
 .slider__wrap {
-    width: 100%;
-    max-width: 1920px;
-    margin: 0 auto;
-    padding-top: 80px;
+  width: 100%;
+  max-width: 1920px;
+  margin: 70px auto 20px;
 }
 
 .slider {
-    position: relative;
+  position: relative;
 }
 
 .slider__img {
-    width: 100%;
-    height: 400px; /* 가로 길게, 세로 짧게 */
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 100%;
+  height: 400px; /* 기본 높이 */
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .desc {
-    width: 1160px;
-    text-align: center;
+  width: 1160px;
+  text-align: center;
 }
 
 .desc span {
-    font-size: 16px;
-    background-color: #fff;
-    padding: 5px 14px;
-    border-radius: 30px;
-    text-transform: uppercase;
-    display: inline-block;
-    margin-bottom: 10px;
+  font-size: 16px;
+  background-color: #fff;
+  padding: 5px 14px;
+  border-radius: 30px;
+  text-transform: uppercase;
+  display: inline-block;
+  margin-bottom: 10px;
 }
 
 .desc h3 {
-    font-size: 80px;
-    font-weight: 300;
-    color: #fff;
-    text-transform: uppercase;
-    margin-bottom: 16px;
+  font-size: 80px;
+  font-weight: 300;
+  color: #fff;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  text-shadow: 0 25px 5px rgba(0, 0, 0, 0.4);
 }
 
 .desc p {
-    font-size: 20px;
-    font-weight: 300;
-    color: #fff;
-    margin-bottom: 100px;
+  font-size: 20px;
+  font-weight: 300;
+  color: #fff;
+  margin-bottom: 100px;
 }
 
-.desc h3{
-  text-shadow: 0 25px 5px rgba(0, 0, 0, 0.4);
+/* 버튼 기본 */
+.slider-btn {
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-weight: bold;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.slider-btn:hover {
+  background: #000;
+  transform: scale(1.05);
 }
 
 .arrow {
@@ -69,7 +83,61 @@
   right: 20px;
 }
 
+/* ===================== 반응형 추가 ===================== */
 
+/* 태블릿 (1024px 이하) */
+@media (max-width: 1024px) {
+  .slider__img {
+    height: 320px;
+  }
 
+  .desc {
+    width: 90%;
+  }
 
+  .desc h3 {
+    font-size: 48px;
+  }
 
+  .desc p {
+    font-size: 18px;
+    margin-bottom: 60px;
+  }
+
+  .slider-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+/* 모바일 (480px 이하) */
+@media (max-width: 480px) {
+  .slider__img {
+    height: 240px;
+  }
+
+  .desc {
+    width: 100%;
+    padding: 0 16px;
+  }
+
+  .desc h3 {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  .desc p {
+    font-size: 14px;
+    margin-bottom: 30px;
+  }
+
+  .slider-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  .arrow {
+    display: none; /* 모바일에서는 화살표 숨김 */
+  }
+}
