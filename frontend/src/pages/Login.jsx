@@ -1,195 +1,19 @@
-import { useState, useEffect } from "react";
+// src/pages/Login.jsx
+import { useState, useEffect, useRef } from "react";
 import axios from "../api/axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/img/로고.png";
 
-export default function Login() {
-  const [form, setForm] = useState({ username: "", password: "" });
-  const [errorMessage, setErrorMessage] = useState("");
-  const [autoLogin, setAutoLogin] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  // 모달 상태
-  const [showFindId, setShowFindId] = useState(false);
-  const [showFindPw, setShowFindPw] = useState(false);
-
-  // ===== 아이디 찾기 모달 상태 =====
-  const [idEmail, setIdEmail] = useState("");
-  const [idCode, setIdCode] = useState("");
-  const [idSubmitting, setIdSubmitting] = useState(false);
-  const [idInfo, setIdInfo] = useState("");
-  const [idErr, setIdErr] = useState("");
-  const [idCodeSent, setIdCodeSent] = useState(false);
-  const [idVerified, setIdVerified] = useState(false);
-  const [revealedUsernames, setRevealedUsernames] = useState([]);
-
-  const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from || "/";
-
-  // 공통 인풋 클래스 (흰색 계열)
-  const inputCls =
-    "w-full h-11 border border-gray-300 rounded-md px-4 text-sm " +
-    "outline-none focus:border-black focus:ring-2 focus:ring-black/30 " +
-    "bg-white placeholder-gray-400";
-
-  useEffect(() => {
-    const saved = localStorage.getItem("autoLogin") === "true";
-    setAutoLogin(saved);
-
-    const token = localStorage.getItem("token");
-    if (saved && token) {
-      axios
-        .post("/auth/jwt/verify/", { token })
-        .then(() => {
-          axios.defaults.headers.common.Authorization = `Bearer ${token}`;
-          navigate(from, { replace: true });
-        })
-        .catch(() => {
-          localStorage.removeItem("token");
-          localStorage.removeItem("refreshToken");
-        });
-    }
-  }, [navigate, from]);
-
-  useEffect(() => {
-    const onBeforeUnload = () => {
-      const saved = localStorage.getItem("autoLogin") === "true";
-      if (!saved) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-      }
-    };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, []);
-
-  // 모달 열릴 때 배경 스크롤 잠금 + ESC 닫기
-  useEffect(() => {
-    const opened = showFindId || showFindPw;
-    if (!opened) return;
-    const original = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const onKey = (e) => {
-      if (e.key === "Escape") {
-        setShowFindId(false);
-        setShowFindPw(false);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-
-    return () => {
-      document.body.style.overflow = original;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [showFindId, showFindPw]);
-
-  const handleChange = (e) =>
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMessage("");
-    setLoading(true);
-    try {
-      const { data } = await axios.post("/auth/jwt/create/", {
-        username: form.username,
-        password: form.password,
-      });
-      localStorage.setItem("token", data.access);
-      localStorage.setItem("refreshToken", data.refresh);
-      localStorage.setItem("autoLogin", String(autoLogin));
-      axios.defaults.headers.common.Authorization = `Bearer ${data.access}`;
-      navigate(from, { replace: true });
-    } catch {
-      setErrorMessage("아이디 또는 비밀번호가 올바르지 않습니다.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ========== 아이디 찾기: 1) 코드 보내기 ==========
-  const sendIdCode = async () => {
-    setIdErr("");
-    setIdInfo("");
-    setRevealedUsernames([]);
-    if (!idEmail) {
-      setIdErr("이메일을 입력해 주세요.");
-      return;
-    }
-    setIdSubmitting(true);
-    try {
-      await axios.post("/auth/email/send-code/", { email: idEmail });
-      setIdCodeSent(true);
-      setIdInfo("인증번호를 전송했습니다. 메일함(스팸함 포함)을 확인해 주세요.");
-    } catch (err) {
-      console.log("sendIdCode err:", err?.response?.status, err?.response?.data);
-      setIdErr("인증번호 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.");
-    } finally {
-      setIdSubmitting(false);
-    }
-  };
-
-  // ========== 아이디 찾기: 2) 코드 검증 ==========
-  const verifyIdCode = async () => {
-    setIdErr("");
-    setIdInfo("");
-    if (!idEmail || !idCode) {
-      setIdErr("이메일과 인증번호를 입력해 주세요.");
-      return;
-    }
-    setIdSubmitting(true);
-    try {
-      await axios.post("/auth/email/verify-code/", { email: idEmail, code: idCode });
-      setIdVerified(true);
-      setIdInfo("이메일 인증이 완료되었습니다. 아이디 보기를 눌러 주세요.");
-    } catch (err) {
-      console.log("verifyIdCode err:", err?.response?.status, err?.response?.data);
-      setIdErr("인증번호가 올바르지 않거나 만료되었습니다.");
-    } finally {
-      setIdSubmitting(false);
-    }
-  };
-
-  // ========== 아이디 찾기: 3) 실명 아이디 조회 ==========
-  const revealUsernames = async () => {
-    setIdErr("");
-    setIdInfo("");
-    setRevealedUsernames([]);
-    if (!idVerified) {
-      setIdErr("이메일 인증이 필요합니다.");
-      return;
-    }
-    setIdSubmitting(true);
-    try {
-      const { data } = await axios.post("/auth/account/reveal-username/", { email: idEmail });
-      setRevealedUsernames(Array.isArray(data.usernames) ? data.usernames : []);
-      if (!data.usernames || data.usernames.length === 0) {
-        setIdInfo("해당 이메일로 가입된 아이디가 없습니다.");
-      }
-    } catch (err) {
-      console.log("revealUsernames err:", err?.response?.status, err?.response?.data);
-      setIdErr("아이디 조회 중 오류가 발생했습니다.");
-    } finally {
-      setIdSubmitting(false);
-    }
-  };
-
-  // ====== 공용 모달 셸 (헤더와 간격 + 짤림 방지) ======
-  const ModalShell = ({ title, onClose, children }) => (
+/* ------------------------------
+   공용 모달 셸
+-------------------------------- */
+function ModalShell({ title, onClose, children }) {
+  return (
     <div className="fixed inset-0 z-50">
-      {/* 오버레이 */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      {/* 배치 컨테이너: 헤더와 간격 확보 + 가로 중앙 */}
       <div className="relative h-full w-full flex justify-center items-start pt-24 p-4">
-        {/* 모달 박스 */}
         <div
-          className="
-            relative w-full max-w-[520px]
-            bg-white rounded-xl shadow-lg border border-gray-200
-            p-6 max-h-[85vh] overflow-y-auto
-          "
+          className="relative w-full max-w-[520px] bg-white rounded-xl shadow-lg border border-gray-200 p-6 max-h-[85vh] overflow-y-auto"
           role="dialog"
           aria-modal="true"
         >
@@ -208,10 +32,32 @@ export default function Login() {
       </div>
     </div>
   );
+}
 
-  const FindIdModal = () => (
-    <ModalShell title="아이디 찾기" onClose={() => setShowFindId(false)}>
-      <p className="text-sm text-gray-500 mb-4">가입하신 이메일로 본인 인증 후 아이디를 확인할 수 있어요.</p>
+/* ------------------------------
+   아이디 찾기 모달
+-------------------------------- */
+function FindIdModal({
+  onClose,
+  idEmail, setIdEmail,
+  idCode, setIdCode,
+  idSubmitting,
+  idInfo, idErr,
+  idCodeSent, idVerified,
+  sendIdCode, verifyIdCode, revealUsernames,
+  revealedUsernames,
+  inputCls
+}) {
+  const codeInputRef = useRef(null);
+  useEffect(() => {
+    codeInputRef.current?.focus();
+  }, []);
+
+  return (
+    <ModalShell title="아이디 찾기" onClose={onClose}>
+      <p className="text-sm text-gray-500 mb-4">
+        가입하신 이메일로 본인 인증 후 아이디를 확인할 수 있어요.
+      </p>
 
       <label className="block text-xs text-gray-600 mb-1">이메일</label>
       <input
@@ -237,6 +83,7 @@ export default function Login() {
       <div className="mt-4">
         <label className="block text-xs text-gray-600 mb-1">인증코드</label>
         <input
+          ref={codeInputRef}
           type="text"
           placeholder="6자리 코드"
           value={idCode}
@@ -291,207 +138,297 @@ export default function Login() {
       )}
     </ModalShell>
   );
+}
 
-  // ========= 비밀번호 재설정 (코드 인증 → 즉시 변경) 모달 =========
-  const ResetPwByCodeModal = () => {
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [code, setCode] = useState("");
-    const [codeSent, setCodeSent] = useState(false);
-    const [verified, setVerified] = useState(false);
-    const [resetToken, setResetToken] = useState("");
+/* ------------------------------
+   비밀번호 재설정 모달
+-------------------------------- */
+function ResetPwByCodeModal({ onClose, inputCls }) {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const [resetToken, setResetToken] = useState("");
 
-    const [pw1, setPw1] = useState("");
-    const [pw2, setPw2] = useState("");
-    const [showPw, setShowPw] = useState(false);
+  const [pw1, setPw1] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [showPw, setShowPw] = useState(false);
 
-    const [submitting, setSubmitting] = useState(false);
-    const [info, setInfo] = useState("");
-    const [err, setErr] = useState("");
-    const [cooldown, setCooldown] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [info, setInfo] = useState("");
+  const [err, setErr] = useState("");
+  const [cooldown, setCooldown] = useState(0);
 
-    useEffect(() => {
-      if (!cooldown) return;
-      const t = setInterval(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
-      return () => clearInterval(t);
-    }, [cooldown]);
+  useEffect(() => {
+    if (!cooldown) return;
+    const t = setInterval(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
+    return () => clearInterval(t);
+  }, [cooldown]);
 
-    const sendCode = async () => {
-      setErr(""); setInfo("");
-      if (!username) return setErr("아이디를 입력해 주세요.");
-      if (!email) return setErr("이메일을 입력해 주세요.");
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr("올바른 이메일 형식이 아닙니다.");
-      if (cooldown) return;
+  const sendCode = async () => {
+    setErr(""); setInfo("");
+    if (!username) return setErr("아이디를 입력해 주세요.");
+    if (!email) return setErr("이메일을 입력해 주세요.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr("올바른 이메일 형식이 아닙니다.");
+    if (cooldown) return;
 
-      setSubmitting(true);
-      try {
-        await axios.post("/auth/password/send-code/", { username, email });
-        setCodeSent(true);
-        setInfo("인증 코드를 전송했습니다. 메일함(스팸함 포함)을 확인해 주세요.");
-        setCooldown(60);
-      } catch (e) {
-        const msg = e?.response?.data?.detail || "코드 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.";
-        setErr(String(msg));
-      } finally {
-        setSubmitting(false);
-      }
-    };
+    setSubmitting(true);
+    try {
+      await axios.post("/auth/password/send-code/", { username, email });
+      setCodeSent(true);
+      setInfo("인증 코드를 전송했습니다. 메일함(스팸함 포함)을 확인해 주세요.");
+      setCooldown(60);
+    } catch (e) {
+      const msg = e?.response?.data?.detail || "코드 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+      setErr(String(msg));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-    const verifyCode = async () => {
-      setErr(""); setInfo("");
-      if (!username || !email || !code) return setErr("아이디, 이메일, 인증코드를 모두 입력해 주세요.");
+  const verifyCode = async () => {
+    setErr(""); setInfo("");
+    if (!username || !email || !code) return setErr("아이디, 이메일, 인증코드를 모두 입력해 주세요.");
+    setSubmitting(true);
+    try {
+      const { data } = await axios.post("/auth/password/verify-code/", { username, email, code });
+      setResetToken(data.reset_token);
+      setVerified(true);
+      setInfo("인증이 완료되었습니다. 새 비밀번호를 설정해 주세요.");
+    } catch (e) {
+      const msg = e?.response?.data?.detail || "인증에 실패했습니다. 코드를 확인해 주세요.";
+      setErr(String(msg));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-      setSubmitting(true);
-      try {
-        const { data } = await axios.post("/auth/password/verify-code/", { username, email, code });
-        setResetToken(data.reset_token);
-        setVerified(true);
-        setInfo("인증이 완료되었습니다. 새 비밀번호를 설정해 주세요.");
-      } catch (e) {
-        const msg = e?.response?.data?.detail || "인증에 실패했습니다. 코드를 확인해 주세요.";
-        setErr(String(msg));
-      } finally {
-        setSubmitting(false);
-      }
-    };
+  const resetPassword = async () => {
+    setErr(""); setInfo("");
+    if (!verified || !resetToken) return setErr("인증이 필요합니다.");
+    if (!pw1 || !pw2) return setErr("새 비밀번호를 입력해 주세요.");
+    if (pw1.length < 8) return setErr("비밀번호는 8자 이상이어야 합니다.");
+    if (pw1 !== pw2) return setErr("비밀번호가 일치하지 않습니다.");
 
-    const resetPassword = async () => {
-      setErr(""); setInfo("");
-      if (!verified || !resetToken) return setErr("인증이 필요합니다.");
-      if (!pw1 || !pw2) return setErr("새 비밀번호를 입력해 주세요.");
-      if (pw1.length < 8) return setErr("비밀번호는 8자 이상이어야 합니다.");
-      if (pw1 !== pw2) return setErr("비밀번호가 일치하지 않습니다.");
-
-      setSubmitting(true);
-      try {
-        await axios.post("/auth/password/reset-with-code/", {
-          username, email, reset_token: resetToken, new_password: pw1, re_new_password: pw2,
-        });
-        setInfo("비밀번호가 변경되었습니다. 새 비밀번호로 로그인해 주세요.");
-        setTimeout(() => setShowFindPw(false), 1000);
-      } catch (e) {
-        const msg =
-          e?.response?.data?.new_password?.[0] ||
-          e?.response?.data?.detail ||
-          "비밀번호 변경에 실패했습니다. 다시 시도해 주세요.";
-        setErr(String(msg));
-      } finally {
-        setSubmitting(false);
-      }
-    };
-
-    return (
-      <ModalShell title="비밀번호 재설정 (코드 인증)" onClose={() => setShowFindPw(false)}>
-        <p className="text-sm text-gray-500 mb-4">아이디와 이메일로 인증 후, 바로 새 비밀번호를 설정해요.</p>
-
-        <label className="block text-xs text-gray-600 mb-1">아이디</label>
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className={inputCls}
-          placeholder="아이디"
-        />
-
-        <div className="mt-3">
-          <label className="block text-xs text-gray-600 mb-1">이메일</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={inputCls}
-            placeholder="example@email.com"
-          />
-        </div>
-
-        <div className="mt-3 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={sendCode}
-            disabled={submitting || cooldown > 0}
-            className="h-10 px-4 rounded-md bg-black text-white text-sm hover:bg-gray-800 disabled:opacity-60"
-          >
-            {submitting ? "전송 중..." : cooldown ? `재전송 ${cooldown}s` : "인증코드 보내기"}
-          </button>
-          {codeSent && <span className="text-xs text-emerald-600">전송됨</span>}
-        </div>
-
-        <div className="mt-4">
-          <label className="block text-xs text-gray-600 mb-1">인증코드</label>
-          <input
-            type="text"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            className={inputCls}
-            placeholder="6자리 코드"
-          />
-          <div className="mt-2">
-            <button
-              type="button"
-              onClick={verifyCode}
-              disabled={submitting}
-              className="h-10 px-4 rounded-md border border-gray-300 text-sm hover:bg-gray-50"
-            >
-              {submitting ? "확인 중..." : "코드 확인"}
-            </button>
-            {verified && <span className="ml-2 text-xs text-emerald-600">인증 완료</span>}
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <label className="block text-xs text-gray-600 mb-1">새 비밀번호</label>
-          <div className="relative">
-            <input
-              type={showPw ? "text" : "password"}
-              value={pw1}
-              onChange={(e) => setPw1(e.target.value)}
-              className={inputCls}
-              placeholder="8자 이상"
-              disabled={!verified}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPw((s) => !s)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 hover:text-gray-700"
-            >
-              {showPw ? "숨기기" : "보기"}
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-3">
-          <label className="block text-xs text-gray-600 mb-1">새 비밀번호 확인</label>
-          <input
-            type={showPw ? "text" : "password"}
-            value={pw2}
-            onChange={(e) => setPw2(e.target.value)}
-            className={inputCls}
-            disabled={!verified}
-          />
-        </div>
-
-        {info && <p className="text-xs text-emerald-600 mt-2">{info}</p>}
-        {err && <p className="text-xs text-rose-600 mt-2">{err}</p>}
-
-        <div className="mt-4 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={resetPassword}
-            disabled={submitting || !verified}
-            className="h-10 px-4 rounded-md bg-gray-900 text-white text-sm hover:bg-gray-800 disabled:opacity-60"
-          >
-            {submitting ? "변경 중..." : "비밀번호 변경"}
-          </button>
-        </div>
-      </ModalShell>
-    );
+    setSubmitting(true);
+    try {
+      await axios.post("/auth/password/reset-with-code/", {
+        username, email, reset_token: resetToken, new_password: pw1, re_new_password: pw2,
+      });
+      setInfo("비밀번호가 변경되었습니다. 새 비밀번호로 로그인해 주세요.");
+      setTimeout(() => onClose(), 1000);
+    } catch (e) {
+      const msg =
+        e?.response?.data?.new_password?.[0] ||
+        e?.response?.data?.detail ||
+        "비밀번호 변경에 실패했습니다. 다시 시도해 주세요.";
+      setErr(String(msg));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col text-gray-900">
-      {/* 중앙 카드 */}
-      <div className="flex-1 flex items-center justify-center mt-20">
-        <div className="w-[520px] max-w-[92vw] rounded-xl border border-gray-200 shadow-sm bg-white">
+    <ModalShell title="비밀번호 재설정 (코드 인증)" onClose={onClose}>
+      <p className="text-sm text-gray-500 mb-4">아이디와 이메일로 인증 후, 바로 새 비밀번호를 설정해요.</p>
+      <label className="block text-xs text-gray-600 mb-1">아이디</label>
+      <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className={inputCls} />
+      <div className="mt-3">
+        <label className="block text-xs text-gray-600 mb-1">이메일</label>
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
+      </div>
+      <div className="mt-3 flex items-center gap-2">
+        <button type="button" onClick={sendCode} disabled={submitting || cooldown > 0}
+          className="h-10 px-4 rounded-md bg-black text-white text-sm hover:bg-gray-800 disabled:opacity-60">
+          {submitting ? "전송 중..." : cooldown ? `재전송 ${cooldown}s` : "인증코드 보내기"}
+        </button>
+        {codeSent && <span className="text-xs text-emerald-600">전송됨</span>}
+      </div>
+      <div className="mt-4">
+        <label className="block text-xs text-gray-600 mb-1">인증코드</label>
+        <input type="text" value={code} onChange={(e) => setCode(e.target.value)} className={inputCls} />
+        <button type="button" onClick={verifyCode} disabled={submitting}
+          className="mt-2 h-10 px-4 rounded-md border border-gray-300 text-sm hover:bg-gray-50">
+          {submitting ? "확인 중..." : "코드 확인"}
+        </button>
+        {verified && <span className="ml-2 text-xs text-emerald-600">인증 완료</span>}
+      </div>
+      <div className="mt-4">
+        <label className="block text-xs text-gray-600 mb-1">새 비밀번호</label>
+        <input type={showPw ? "text" : "password"} value={pw1} onChange={(e) => setPw1(e.target.value)}
+          className={inputCls} disabled={!verified} />
+      </div>
+      <div className="mt-3">
+        <label className="block text-xs text-gray-600 mb-1">새 비밀번호 확인</label>
+        <input type={showPw ? "text" : "password"} value={pw2} onChange={(e) => setPw2(e.target.value)}
+          className={inputCls} disabled={!verified} />
+      </div>
+      {info && <p className="text-xs text-emerald-600 mt-2">{info}</p>}
+      {err && <p className="text-xs text-rose-600 mt-2">{err}</p>}
+      <div className="mt-4 flex items-center gap-2">
+        <button type="button" onClick={resetPassword} disabled={submitting || !verified}
+          className="h-10 px-4 rounded-md bg-gray-900 text-white text-sm hover:bg-gray-800 disabled:opacity-60">
+          {submitting ? "변경 중..." : "비밀번호 변경"}
+        </button>
+      </div>
+    </ModalShell>
+  );
+}
+
+/* ------------------------------
+   로그인 페이지
+-------------------------------- */
+export default function Login() {
+  const [form, setForm] = useState({ username: "", password: "" });
+  const [errorMessage, setErrorMessage] = useState("");
+  const [autoLogin, setAutoLogin] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const [showFindId, setShowFindId] = useState(false);
+  const [showFindPw, setShowFindPw] = useState(false);
+
+  // 아이디 찾기 상태
+  const [idEmail, setIdEmail] = useState("");
+  const [idCode, setIdCode] = useState("");
+  const [idSubmitting, setIdSubmitting] = useState(false);
+  const [idInfo, setIdInfo] = useState("");
+  const [idErr, setIdErr] = useState("");
+  const [idCodeSent, setIdCodeSent] = useState(false);
+  const [idVerified, setIdVerified] = useState(false);
+  const [revealedUsernames, setRevealedUsernames] = useState([]);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from || "/";
+
+  const inputCls =
+    "w-full h-11 border border-gray-300 rounded-md px-4 text-sm outline-none focus:border-black focus:ring-2 focus:ring-black/30 bg-white placeholder-gray-400";
+
+  // 자동 로그인 처리
+  useEffect(() => {
+    const saved = localStorage.getItem("autoLogin") === "true";
+    setAutoLogin(saved);
+
+    const token = localStorage.getItem("token");
+    if (saved && token) {
+      axios
+        .post("/auth/jwt/verify/", { token })
+        .then(() => {
+          axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+          navigate(from, { replace: true });
+        })
+        .catch(() => {
+          localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
+        });
+    }
+  }, [navigate, from]);
+
+  // 새로고침 시 토큰 정리
+  useEffect(() => {
+    const onBeforeUnload = () => {
+      const saved = localStorage.getItem("autoLogin") === "true";
+      if (!saved) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+      }
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, []);
+
+  const handleChange = (e) =>
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage("");
+    setLoading(true);
+    try {
+      const { data } = await axios.post("/auth/jwt/create/", {
+        username: form.username,
+        password: form.password,
+      });
+      localStorage.setItem("token", data.access);
+      localStorage.setItem("refreshToken", data.refresh);
+      localStorage.setItem("autoLogin", String(autoLogin));
+      axios.defaults.headers.common.Authorization = `Bearer ${data.access}`;
+      navigate(from, { replace: true });
+    } catch {
+      setErrorMessage("아이디 또는 비밀번호가 올바르지 않습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 아이디 찾기 함수
+  const sendIdCode = async () => {
+    setIdErr("");
+    setIdInfo("");
+    setRevealedUsernames([]);
+    if (!idEmail) {
+      setIdErr("이메일을 입력해 주세요.");
+      return;
+    }
+    setIdSubmitting(true);
+    try {
+      await axios.post("/auth/email/send-code/", { email: idEmail });
+      setIdCodeSent(true);
+      setIdInfo("인증번호를 전송했습니다. 메일함(스팸함 포함)을 확인해 주세요.");
+    } catch {
+      setIdErr("인증번호 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setIdSubmitting(false);
+    }
+  };
+
+  const verifyIdCode = async () => {
+    setIdErr("");
+    setIdInfo("");
+    if (!idEmail || !idCode) {
+      setIdErr("이메일과 인증번호를 입력해 주세요.");
+      return;
+    }
+    setIdSubmitting(true);
+    try {
+      await axios.post("/auth/email/verify-code/", { email: idEmail, code: idCode });
+      setIdVerified(true);
+      setIdInfo("이메일 인증이 완료되었습니다. 아이디 보기를 눌러 주세요.");
+    } catch {
+      setIdErr("인증번호가 올바르지 않거나 만료되었습니다.");
+    } finally {
+      setIdSubmitting(false);
+    }
+  };
+
+  const revealUsernames = async () => {
+    setIdErr("");
+    setIdInfo("");
+    setRevealedUsernames([]);
+    if (!idVerified) {
+      setIdErr("이메일 인증이 필요합니다.");
+      return;
+    }
+    setIdSubmitting(true);
+    try {
+      const { data } = await axios.post("/auth/account/reveal-username/", { email: idEmail });
+      setRevealedUsernames(Array.isArray(data.usernames) ? data.usernames : []);
+      if (!data.usernames || data.usernames.length === 0) {
+        setIdInfo("해당 이메일로 가입된 아이디가 없습니다.");
+      }
+    } catch {
+      setIdErr("아이디 조회 중 오류가 발생했습니다.");
+    } finally {
+      setIdSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="w-full bg-white flex flex-col text-gray-900">
+      {/* 로그인 카드 */}
+      <div className="flex items-start justify-center pt-[calc(var(--header-offset,64px)+4px)] pb-4 -mt-12">
+        <div className="w-[520px] max-w-[92vw] rounded-xl border border-gray-200 shadow-sm bg-white -mt-2 md:-mt-3">
           <div className="px-10 pt-10 pb-8">
             <div className="w-full flex flex-col items-center mb-8">
               <img src={logo} alt="로고" className="h-40 object-contain" />
@@ -531,8 +468,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-11 bg-black hover:bg-gray-800 disabled:opacity-60
-                           text-white text-sm font-semibold transition-colors rounded-md"
+                className="w-full h-11 bg-black hover:bg-gray-800 disabled:opacity-60 text-white text-sm font-semibold transition-colors rounded-md"
               >
                 {loading ? "로그인 중..." : "로그인"}
               </button>
@@ -622,8 +558,20 @@ export default function Login() {
         </div>
       </footer>
 
-      {showFindId && <FindIdModal />}
-      {showFindPw && <ResetPwByCodeModal />}
+      {showFindId && (
+        <FindIdModal
+          onClose={() => setShowFindId(false)}
+          idEmail={idEmail} setIdEmail={setIdEmail}
+          idCode={idCode} setIdCode={setIdCode}
+          idSubmitting={idSubmitting}
+          idInfo={idInfo} idErr={idErr}
+          idCodeSent={idCodeSent} idVerified={idVerified}
+          sendIdCode={sendIdCode} verifyIdCode={verifyIdCode} revealUsernames={revealUsernames}
+          revealedUsernames={revealedUsernames}
+          inputCls={inputCls}
+        />
+      )}
+      {showFindPw && <ResetPwByCodeModal onClose={() => setShowFindPw(false)} inputCls={inputCls} />}
     </div>
   );
 }
