@@ -144,7 +144,7 @@ export default function NoticeList() {
   };
 
   return (
-    <main className="pt-24 pb-20 w-[min(92vw,1000px)] mx-auto">
+    <main className="pt-6 pb-6 w-[min(92vw,1000px)] mx-auto">
       {/* 제목 */}
       <h1 className="text-3xl font-extrabold text-[#0B2D6B] mb-6 text-center">
         공지사항

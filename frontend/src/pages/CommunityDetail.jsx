@@ -466,7 +466,7 @@ export default function CommunityDetail() {
   };
 
   return (
-    <main className="pt-24 pb-20 w-[min(92vw,900px)] mx-auto">
+    <main className="pt-6 pb-6 w-[min(92vw,900px)] mx-auto">
       <Link className="text-[#0B2D6B] underline" to="/community">
         ← 목록으로
       </Link>

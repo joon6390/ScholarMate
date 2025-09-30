@@ -1,6 +1,6 @@
 // src/App.jsx
 import { useState, useEffect, useRef } from "react";
-import { Route, Routes, Navigate, Link, useNavigate, useLocation } from "react-router-dom";
+import { Route, Routes, Navigate, useNavigate, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Scholarships from "./pages/Scholarships";
 import Profile from "./pages/Profile";
@@ -8,7 +8,6 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Useinfor from "./pages/Userinfor";
 import PrivateRoute from "./components/PrivateRoute";
-import logo from "./assets/img/로고.png";
 import Wishlist from "./components/Wishlist";
 import CalendarPage from "./pages/Calendar";
 import isTokenExpired from "./api/auth";
@@ -21,7 +20,7 @@ import CommunityDetail from "./pages/CommunityDetail";
 import "antd/dist/reset.css";
 import Messages from "./pages/Messages";
 import MessagesList from "./pages/MessagesList";
-import HeaderMessagesIcon from "./components/HeaderMessagesIcon";
+import Header from "./components/Header";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -42,28 +41,11 @@ export default function App() {
     }
   }, [location.pathname]);
 
-  // ===== 공통 Drawer Item =====
-  const itemCls =
-    "block w-full text-left px-3 py-2 rounded-lg text-gray-800 hover:bg-gray-100 active:bg-gray-200 transition";
-  const DrawerItem = ({ to, onClick, children }) =>
-    to ? (
-      <Link to={to} onClick={onClick} className={itemCls}>
-        {children}
-      </Link>
-    ) : (
-      <button type="button" onClick={onClick} className={itemCls}>
-        {children}
-      </button>
-    );
-
   // ===== 무조건 중앙 정렬 스크롤 =====
   const scrollToSectionId = (sectionId) => {
     const el = document.getElementById(sectionId);
     if (!el) return false;
-
-    // ✅ 항상 중앙에 보이도록
     el.scrollIntoView({ behavior: "smooth", block: "center" });
-
     return true;
   };
 
@@ -122,171 +104,65 @@ export default function App() {
 
   return (
     <>
-      <header className="header">
-        <div className="header-left">
-          <Link
-            to="/"
-            style={{ textDecoration: "none", color: "inherit", display: "flex", alignItems: "center" }}
-          >
-            <img src={logo} alt="Logo" className="logo" />
-            <h1 className="text-center text-2xl font-bold">ScholarMate</h1>
-          </Link>
-        </div>
-
-        <nav className="nav">
-          <Link to="/scholarships" className="nav-btn">
-            전체 장학금
-          </Link>
-          <Link to="/recommendation" className="nav-btn">
-            추천 장학금
-          </Link>
-          <Link to="/interest" className="nav-btn">
-            관심 장학금
-          </Link>
-          <Link to="/calendar" className="nav-btn">
-            나의 장학 캘린더
-          </Link>
-          <Link to="/Userinfor" className="nav-btn">
-            나의 장학 정보
-          </Link>
-        </nav>
-
-        <div
-          className="header-right"
-          style={{ display: "flex", gap: "10px", alignItems: "center", whiteSpace: "nowrap" }}
-        >
-          <button
-            type="button"
-            className="sidebar-toggle-btn"
-            aria-label="사이드바 열기"
-            aria-controls="left-drawer"
-            aria-expanded={sidebarOpen}
-            onClick={() => setSidebarOpen((v) => !v)}
-            title="메뉴"
-          >
-            ☰
-          </button>
-
-          <Link to="/messages" className="nav-btn">
-            쪽지함
-          </Link>
-          <HeaderMessagesIcon />
-          {isLoggedIn ? (
-            <button className="login-btn" onClick={() => navigate("/profile")}>
-              마이페이지
-            </button>
-          ) : (
-            <button className="login-btn" style={{ visibility: "hidden" }}>
-              마이페이지
-            </button>
-          )}
-          {isLoggedIn ? (
-            <button className="logout-btn" onClick={handleLogout}>
-              로그아웃
-            </button>
-          ) : (
-            <button className="login-btn" onClick={() => navigate("/login")}>
-              로그인
-            </button>
-          )}
-        </div>
-      </header>
-
-      {/* ==== Drawer ==== */}
-      <div id="left-drawer" className={`drawer ${sidebarOpen ? "open" : ""}`} onClick={() => setSidebarOpen(false)}>
-        <nav
-          className="drawer-panel"
-          role="dialog"
-          aria-modal="true"
-          aria-label="주 메뉴"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="drawer-head">
-            <strong>메뉴</strong>
-            <button type="button" className="drawer-close" aria-label="사이드바 닫기" onClick={() => setSidebarOpen(false)}>
-              ×
-            </button>
-          </div>
-
-          <div className="drawer-links">
-            <DrawerItem to="/community" onClick={() => setSidebarOpen(false)}>
-              커뮤니티
-            </DrawerItem>
-            <DrawerItem to="/notice" onClick={() => setSidebarOpen(false)}>
-              공지사항
-            </DrawerItem>
-            <DrawerItem to="/introduction" onClick={() => setSidebarOpen(false)}>
-              서비스 소개
-            </DrawerItem>
-
-            <hr className="drawer-sep my-2" />
-
-            <DrawerItem onClick={() => goToSection("features")}>시스템 특징</DrawerItem>
-            <DrawerItem onClick={() => goToSection("functions")}>주요 기능</DrawerItem>
-            <DrawerItem onClick={() => goToSection("how-to")}>이용 방법</DrawerItem>
-            <DrawerItem onClick={() => goToSection("contact")}>문의하기</DrawerItem>
-          </div>
-
-          <hr className="drawer-sep my-3" />
-
-          <div className="drawer-actions">
-            {isLoggedIn ? (
-              <>
-                <button
-                  type="button"
-                  className="drawer-btn primary"
-                  onClick={() => {
-                    setSidebarOpen(false);
-                    navigate("/profile");
-                  }}
-                >
-                  마이페이지
-                </button>
-                <button
-                  type="button"
-                  className="drawer-btn"
-                  onClick={() => {
-                    setSidebarOpen(false);
-                    handleLogout();
-                  }}
-                >
-                  로그아웃
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                className="drawer-btn primary"
-                onClick={() => {
-                  setSidebarOpen(false);
-                  handleLogin();
-                }}
-              >
-                로그인
-              </button>
-            )}
-          </div>
-        </nav>
-      </div>
+      <Header
+        isLoggedIn={isLoggedIn}
+        setIsLoggedIn={setIsLoggedIn}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        goToSection={goToSection}
+      />
 
       <main className="content">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/scholarships" element={<PrivateRoute isLoggedIn={isLoggedIn}><Scholarships /></PrivateRoute>} />
-          <Route path="/recommendation" element={<PrivateRoute isLoggedIn={isLoggedIn}><Recommendation /></PrivateRoute>} />
-          <Route path="/interest" element={<PrivateRoute isLoggedIn={isLoggedIn}><Wishlist /></PrivateRoute>} />
-          <Route path="/calendar" element={<PrivateRoute isLoggedIn={isLoggedIn}><CalendarPage /></PrivateRoute>} />
-          <Route path="/Userinfor" element={<PrivateRoute isLoggedIn={isLoggedIn}><Useinfor /></PrivateRoute>} />
-          <Route path="/community" element={<PrivateRoute isLoggedIn={isLoggedIn}><CommunityPage /></PrivateRoute>} />
-          <Route path="/profile" element={isLoggedIn ? <Profile /> : <Navigate to="/login" />} />
-          <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
-          <Route path="/register" element={isLoggedIn ? <Navigate to="/" /> : <Register />} />
+          <Route
+            path="/scholarships"
+            element={<PrivateRoute isLoggedIn={isLoggedIn}><Scholarships /></PrivateRoute>}
+          />
+          <Route
+            path="/recommendation"
+            element={<PrivateRoute isLoggedIn={isLoggedIn}><Recommendation /></PrivateRoute>}
+          />
+          <Route
+            path="/interest"
+            element={<PrivateRoute isLoggedIn={isLoggedIn}><Wishlist /></PrivateRoute>}
+          />
+          <Route
+            path="/calendar"
+            element={<PrivateRoute isLoggedIn={isLoggedIn}><CalendarPage /></PrivateRoute>}
+          />
+          <Route
+            path="/Userinfor"
+            element={<PrivateRoute isLoggedIn={isLoggedIn}><Useinfor /></PrivateRoute>}
+          />
+          <Route
+            path="/community"
+            element={<PrivateRoute isLoggedIn={isLoggedIn}><CommunityPage /></PrivateRoute>}
+          />
+          <Route
+            path="/profile"
+            element={isLoggedIn ? <Profile /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/login"
+            element={isLoggedIn ? <Navigate to="/" /> : <Login onLogin={handleLogin} />}
+          />
+          <Route
+            path="/register"
+            element={isLoggedIn ? <Navigate to="/" /> : <Register />}
+          />
           <Route path="/introduction" element={<Introduction />} />
           <Route path="/notice" element={<NoticeList />} />
           <Route path="/notice/:id" element={<NoticeDetail />} />
           <Route path="/community/:id" element={<CommunityDetail />} />
-          <Route path="/messages" element={<PrivateRoute isLoggedIn={isLoggedIn}><MessagesList /></PrivateRoute>} />
-          <Route path="/messages/:conversationId" element={<PrivateRoute isLoggedIn={isLoggedIn}><Messages /></PrivateRoute>} />
+          <Route
+            path="/messages"
+            element={<PrivateRoute isLoggedIn={isLoggedIn}><MessagesList /></PrivateRoute>}
+          />
+          <Route
+            path="/messages/:conversationId"
+            element={<PrivateRoute isLoggedIn={isLoggedIn}><Messages /></PrivateRoute>}
+          />
         </Routes>
       </main>
     </>

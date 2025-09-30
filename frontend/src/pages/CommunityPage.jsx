@@ -246,7 +246,6 @@ export default function CommunityPage() {
       {/* ===== 상단 파란 헤더 ===== */}
       <div
         className="
-          sticky top-[80px] z-40
           bg-gradient-to-r from-blue-500 to-indigo-600
           text-white px-6 py-6 shadow
         "
@@ -338,7 +337,7 @@ export default function CommunityPage() {
       </div>
 
       {/* ===== 본문 ===== */}
-      <main className="w-full px-6 md:px-10 py-8 pb-24 mt-20 flex-1">
+      <main className="w-full px-6 md:px-10 py-8 pb-6 flex-1">
         <section className="mb-8">
           <h2 className="text-2xl font-bold mb-4">
             게시글 <span className="text-gray-500 text-base">({total}건)</span>
