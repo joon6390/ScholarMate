@@ -219,7 +219,7 @@ export default function Messages() {
   const isMine = (m) => m.__mine ?? isMineMessage(m);
 
   return (
-    <main className="pt-28 pb-20 w-[min(92vw,800px)] mx-auto">
+    <main className="pt-24 pb-20 w-[min(92vw,800px)] mx-auto">
       <Card
         title={
           <div className="flex items-center gap-2">

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export default function Introduction() {
   return (
-    <main className="pt-28 pb-20">
+    <main className="pt-24 pb-20">
       {/* ===== Hero ===== */}
       <section className="relative left-1/2 -translate-x-1/2 w-[min(92vw,1280px)]">
         <div className="bg-white rounded-2xl shadow-lg p-10 md:p-14">

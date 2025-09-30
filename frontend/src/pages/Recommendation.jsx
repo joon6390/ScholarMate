@@ -227,7 +227,7 @@ export default function Recommendation() {
 
   // ✅ 레이아웃 래퍼
   const Wrapper = ({ children }) => (
-    <main className="min-h-screen bg-gray-100" style={{ paddingTop: headerPad }}>
+    <main className="min-h-screen bg-gray-100" style={{ paddingTop: "100px" }}>
       <div className="w-screen max-w-full px-4 flex justify-center">
         <section
           className="w-full max-w-4xl bg-white rounded-lg shadow-xl p-8"
