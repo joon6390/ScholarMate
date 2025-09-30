@@ -211,4 +211,72 @@ button:focus-visible { outline: 4px auto -webkit-focus-ring-color; }
   white-space:nowrap;
 }
 
+/* ✅ CommunityNotice Swiper 점 네비게이션 위치 */
+.community-swiper .swiper-pagination {
+  position: relative !important;
+  margin-top: 14px;
+  text-align: center;
+}
+
+.community-swiper .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background-color: #ccc;
+  opacity: 1;
+  margin: 0 4px !important;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+}
+
+.community-swiper .swiper-pagination-bullet-active {
+  background-color: #2563eb; /* 활성 점 파란색 */
+}
+
+/* ✅ FeatureSection Swiper 점 네비게이션 위치 조정 */
+.feature-swiper .swiper-pagination {
+  position: relative !important; /* 기본 absolute → relative */
+  margin-top: 12px;              /* 카드와 점 사이 여백 */
+  text-align: center;
+}
+
+.feature-swiper .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background-color: #ccc;
+  opacity: 1;
+  margin: 0 4px !important;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+}
+
+.feature-swiper .swiper-pagination-bullet-active {
+  background-color: #2563eb; /* 활성 점 파란색 */
+}
+
+/* ✅ CardSection Swiper 점 네비게이션 */
+.card-swiper .swiper-pagination {
+  position: relative !important;
+  margin-top: 14px;
+  text-align: center;
+}
+
+.card-swiper .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background-color: #ccc;
+  opacity: 1;
+  margin: 0 4px !important;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+}
+
+.card-swiper .swiper-pagination-bullet-active {
+  background-color: #2563eb; /* 활성 점 파란색 */
+}
+
+
+
+
+
+
 

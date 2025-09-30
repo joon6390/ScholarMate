@@ -1,40 +1,37 @@
-body.calendar-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center; /* 추가: 세로 방향 중앙 정렬 */
-  min-height: 100vh;        /* 추가: 전체 높이 확보 */
-  margin: 0;                /* 여백 제거 */
-  background-color: white;
-}
-
+/* =========================
+   📦 달력 박스
+   ========================= */
 .calendar-container {
   max-width: 600px;
-  margin-top: 100px;
+  width: 100%;
+  margin: 100px auto;
   padding: 2rem;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* 📅 달력 기본 스타일 */
+/* =========================
+   📅 달력 기본 스타일
+   ========================= */
 .react-calendar {
   border: none;
   font-family: 'Pretendard', sans-serif;
+  width: 100%;
 }
 
-/* 📅 달력 셀 스타일 */
+/* 날짜 셀 크기 고정 (원형 중앙 맞춤) */
 .react-calendar__tile {
-  min-height: 70px;
-  padding: 6px 4px;
+  width: 70px;              /* ✅ 가로 크기 고정 */
+  height: 70px;             /* ✅ 세로 크기 고정 */
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   color: #222 !important;
   background-color: white;
   border-radius: 8px;
   transition: background 0.2s ease-in-out;
+  box-sizing: border-box;
 }
 
 /* 🔁 hover 시 셀 강조 */
@@ -54,10 +51,14 @@ body.calendar-page {
 .react-calendar__tile--active {
   background: #3399ff !important;
   color: white !important;
-  border-radius: 50%;
+  border-radius: 50%;  /* ✅ 정확히 원형 */
+  width: 60px;
+  height: 60px;
 }
 
-/* 📌 장학금 이벤트 한 줄 표시 */
+/* =========================
+   📌 이벤트 스타일
+   ========================= */
 .calendar-event {
   font-size: 0.55rem;
   padding: 2px 4px;
@@ -72,12 +73,11 @@ body.calendar-page {
   cursor: pointer;
 }
 
-/* 📌 여러 장학금 이벤트 묶음 */
 .calendar-multi-event {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  width: 80px; /* 셀 안에서 컨트롤 */
+  width: 100%;
 }
 
 /* 🔙 이전/다음 달 날짜 연하게 */
@@ -85,7 +85,7 @@ body.calendar-page {
   color: #ccc;
 }
 
-/* 📆 달 상단 네비게이션 바 */
+/* 📆 달 상단 네비게이션 */
 .react-calendar__navigation {
   display: flex;
   justify-content: center;
@@ -101,7 +101,9 @@ body.calendar-page {
   cursor: pointer;
 }
 
-/* 🪟 모달 오버레이 */
+/* =========================
+   🪟 모달 스타일
+   ========================= */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -115,7 +117,6 @@ body.calendar-page {
   z-index: 100;
 }
 
-/* 🪟 모달 본문 */
 .modal-content {
   background: white;
   padding: 2rem;
@@ -126,13 +127,11 @@ body.calendar-page {
   animation: fadeIn 0.2s ease-in-out;
 }
 
-/* 🪟 모달 제목 */
 .modal-content h3 {
   margin-top: 0;
   margin-bottom: 1rem;
 }
 
-/* 🪟 버튼 스타일 */
 .modal-content button {
   margin-top: 1rem;
   background: #3399ff;
@@ -143,43 +142,38 @@ body.calendar-page {
   cursor: pointer;
 }
 
-/* ✨ 모달 등장 애니메이션 */
+/* ✨ 모달 애니메이션 */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* =========================
+   📱 반응형
+   ========================= */
 @media (max-width: 480px) {
   .calendar-container {
     padding: 1rem;
     max-width: 100%;
   }
 
-  .calendar-event {
-    font-size: 0.6rem;
-    padding: 2px 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .react-calendar__tile {
+    width: 45px;
+    height: 45px;
   }
 
-  .calendar-multi-event {
-    width: 100%; /* 셀 안에서 최대한 넓게 */
-    gap: 2px;
+  .react-calendar__tile--active {
+    width: 40px;
+    height: 40px;
+  }
+
+  .calendar-event {
+    font-size: 0.6rem;
   }
 
   .modal-content {
     width: 90%;
     padding: 1.5rem;
-  }
-
-  .modal-content h3 {
-    font-size: 1rem;
-  }
-
-  .modal-content button {
-    font-size: 0.85rem;
-    padding: 6px 12px;
   }
 }
 
@@ -189,6 +183,9 @@ body.calendar-page {
   font-weight: bold;
 }
 
+/* =========================
+   🔎 헤더 + 검색 정렬
+   ========================= */
 .calendar-header {
   display: flex;
   flex-direction: column;
@@ -208,4 +205,3 @@ body.calendar-page {
   outline: none;
   transition: border-color 0.3s;
 }
-

@@ -10,7 +10,12 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 function NextArrow(props) {
   const { onClick } = props;
   return (
-    <button type="button" className="arrow next" onClick={onClick} aria-label="다음 슬라이드">
+    <button
+      type="button"
+      className="arrow next"
+      onClick={onClick}
+      aria-label="다음 슬라이드"
+    >
       <FaChevronRight size={22} />
     </button>
   );
@@ -19,7 +24,12 @@ function NextArrow(props) {
 function PrevArrow(props) {
   const { onClick } = props;
   return (
-    <button type="button" className="arrow prev" onClick={onClick} aria-label="이전 슬라이드">
+    <button
+      type="button"
+      className="arrow prev"
+      onClick={onClick}
+      aria-label="이전 슬라이드"
+    >
       <FaChevronLeft size={22} />
     </button>
   );
@@ -40,6 +50,20 @@ export default function SliderSection() {
     prevArrow: <PrevArrow />,
     pauseOnHover: true,
     adaptiveHeight: false,
+    responsive: [
+      {
+        breakpoint: 1024, // 태블릿 이하
+        settings: { slidesToShow: 1 },
+      },
+      {
+        breakpoint: 768, // 모바일 큰 화면
+        settings: { slidesToShow: 1 },
+      },
+      {
+        breakpoint: 480, // 모바일 작은 화면
+        settings: { slidesToShow: 1, arrows: false }, // 모바일에서는 화살표 숨김
+      },
+    ],
   };
 
   const slides = [
@@ -52,7 +76,7 @@ export default function SliderSection() {
           더 많은 학생들에게 교육의 평등성을 제공하는 것을 목표로 합니다.
         </>
       ),
-      cta: { label: "자세히 알아보기", to: "/introduction" }, // ✅ 변경
+      cta: { label: "자세히 알아보기", to: "/introduction" },
     },
     {
       img: sliderImage2,
@@ -73,18 +97,22 @@ export default function SliderSection() {
         {slides.map((slide, index) => (
           <div key={index}>
             <div
-              className="slider__img"
+              className="slider__img flex items-center justify-center text-center"
               style={{ backgroundImage: `url(${slide.img})` }}
               role="img"
               aria-label={slide.title}
             >
               <div className="slider__overlay" />
-              <div className="desc text-white text-center">
-                <h3 className="text-4xl md:text-6xl font-bold mb-4">{slide.title}</h3>
-                <p className="text-lg md:text-xl mb-6">{slide.desc}</p>
+              <div className="desc text-white px-4 md:px-8">
+                <h3 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4">
+                  {slide.title}
+                </h3>
+                <p className="text-base md:text-lg lg:text-xl mb-6 leading-relaxed">
+                  {slide.desc}
+                </p>
                 <button
                   onClick={() => navigate(slide.cta.to)}
-                  className="bg-black/80 text-white font-bold px-6 py-3 rounded-lg shadow-md hover:bg-black hover:scale-105 transition duration-300"
+                  className="slider-btn"
                 >
                   {slide.cta.label}
                 </button>

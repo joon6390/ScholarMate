@@ -144,7 +144,7 @@ export default function NoticeList() {
   };
 
   return (
-    <main className="pt-28 pb-20 w-[min(92vw,1000px)] mx-auto">
+    <main className="pt-24 pb-20 w-[min(92vw,1000px)] mx-auto">
       {/* 제목 */}
       <h1 className="text-3xl font-extrabold text-[#0B2D6B] mb-6 text-center">
         공지사항
@@ -244,7 +244,7 @@ export default function NoticeList() {
         onOk={submitCreate}
         confirmLoading={saving}
         okText="등록"
-        destroyOnClose
+        destroyOnHidden
         // 등록 버튼 검정색 스타일
         okButtonProps={{
           className: "!bg-black !border-black !text-white hover:!bg-gray-800",
