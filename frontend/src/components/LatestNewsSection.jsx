@@ -11,7 +11,7 @@ export default function LatestNewsSection() {
         "국가장학금 1유형/2유형을 포함한 공공재정 기반 장학금 제공, 다양한 봉사장학금, 우수인재 국가장학금, 다자녀장학금 등 운영",
       image: koreaImg,
       link: "https://www.kosaf.go.kr",
-      imgClass: "max-h-48",
+      imgClass: "max-h-40",
     },
     {
       date: "🌟 드림스폰 (DreamSpon)",
@@ -20,45 +20,52 @@ export default function LatestNewsSection() {
         "저소득층, 다문화, 탈북, 보호종료청년 등 사회적 배려계층 중심 지원, 단순한 금전 지원뿐만 아니라 멘토링, 진로상담, 정서 지원 등 포함",
       image: dreamsponImg,
       link: "https://www.dreamspon.com",
-      imgClass: "max-h-32",
+      imgClass: "max-h-28",
     },
   ];
 
   return (
-    // 👇 id="news" 추가
-    <section id="news" className="py-20 bg-white w-full">
+    <section id="news" className="py-12 sm:py-16 bg-white w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900">최신 소식</h2>
-          <p className="mt-4 text-lg text-gray-600">
+        {/* 제목 */}
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-lg sm:text-2xl font-bold text-gray-900">
+            최신 소식
+          </h2>
+          <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-gray-600 max-w-xl mx-auto leading-relaxed">
             최신 장학금 소식을 확인하세요
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* 카드 2개 고정 가로 나열 */}
+        <div className="grid grid-cols-2 gap-4 sm:gap-6">
           {news.map((item, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+              className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
             >
-              <div className="bg-white flex items-center justify-center h-64 border-b border-gray-200">
+              <div className="bg-white flex items-center justify-center h-40 sm:h-48 border-b border-gray-200">
                 <img
                   src={item.image}
                   alt={`${item.title} 이미지`}
                   className={`object-contain ${item.imgClass}`}
                 />
               </div>
-              <div className="p-6 text-left">
-                <div className="text-sm text-gray-500 mb-2">{item.date}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <div className="p-4 sm:p-5 text-left">
+                <div className="text-[11px] sm:text-xs text-gray-500 mb-1">
+                  {item.date}
+                </div>
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1">
                   {item.title}
                 </h3>
-                <p className="text-gray-600 mb-4">{item.description}</p>
+                <p className="text-[11px] sm:text-sm text-gray-600 mb-3 leading-snug">
+                  {item.description}
+                </p>
                 <a
                   href={item.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-black font-medium hover:text-blue-800 transition-colors"
+                  className="text-xs sm:text-sm text-black font-medium hover:text-blue-800 transition-colors"
                 >
                   자세히 보기 →
                 </a>

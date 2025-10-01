@@ -28,26 +28,19 @@ export default function Recommendation() {
   const [error, setError] = useState(null);
   const [headerPad, setHeaderPad] = useState(96);
 
-  // ❤️ 찜 상태
   const [favorites, setFavorites] = useState(new Set());
 
-  // 상세 모달
   const [selected, setSelected] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const navigate = useNavigate();
 
-  // ===== URL 유효성/정규화 =====
+  // ===== URL 정규화 =====
   const resolveUrl = (u) => {
     if (!u) return null;
     const v = String(u).trim();
-
-    const invalid = new Set([
-      "", "#", "-", "null", "none", "n/a", "N/A",
-      "해당없음", "없음", "미정", "준비중",
-    ]);
+    const invalid = new Set(["", "#", "-", "null", "none", "n/a", "N/A", "해당없음", "없음", "미정", "준비중"]);
     if (invalid.has(v) || invalid.has(v.toLowerCase())) return null;
-
     const withScheme = /^https?:\/\//i.test(v) ? v : `https://${v.replace(/^\/+/, "")}`;
     try {
       const url = new URL(withScheme);
@@ -59,7 +52,7 @@ export default function Recommendation() {
   };
   const urlFor = (obj) => resolveUrl(obj?.url || obj?.homepage_url || obj?.link);
 
-  // 헤더 높이만큼 패딩
+  // 헤더 높이 반영
   useLayoutEffect(() => {
     const updatePad = () => {
       const header =
@@ -77,12 +70,11 @@ export default function Recommendation() {
   const API_BASE =
     import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") || "http://34.228.112.95";
 
-  // ===== 토스트 (성공/에러 안내 배너) =====
-  const [toast, setToast] = useState({ open: false, message: "", type: "success" }); // type: 'success' | 'error' | 'info'
+  // ===== 토스트 =====
+  const [toast, setToast] = useState({ open: false, message: "", type: "success" });
   const toastTimerRef = useRef(null);
 
   const showToast = (message, type = "success", duration = 2000) => {
-    // 기존 타이머 정리
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ open: true, message, type });
     toastTimerRef.current = setTimeout(() => {
@@ -90,10 +82,7 @@ export default function Recommendation() {
       toastTimerRef.current = null;
     }, duration);
   };
-
-  useEffect(() => () => {
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-  }, []);
+  useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); }, []);
 
   // 추천 로드
   useEffect(() => {
@@ -146,11 +135,10 @@ export default function Recommendation() {
         setLoading(false);
       }
     };
-
     fetchRecommendations();
   }, [navigate, API_BASE]);
 
-  // 초기 찜 목록 로드
+  // 찜 목록 로드
   useEffect(() => {
     const loadFavorites = async () => {
       try {
@@ -163,22 +151,14 @@ export default function Recommendation() {
         const data = await res.json();
         const ids = (data || []).map((w) => w.scholarship.product_id);
         setFavorites(new Set(ids));
-      } catch {
-        // 무시
-      }
+      } catch {}
     };
     loadFavorites();
   }, [API_BASE]);
 
   // 상세 모달
-  const openModal = (item) => {
-    setSelected(item);
-    setIsModalOpen(true);
-  };
-  const closeModal = () => {
-    setSelected(null);
-    setIsModalOpen(false);
-  };
+  const openModal = (item) => { setSelected(item); setIsModalOpen(true); };
+  const closeModal = () => { setSelected(null); setIsModalOpen(false); };
 
   // 찜 토글
   const toggleFavorite = async (item) => {
@@ -201,9 +181,7 @@ export default function Recommendation() {
           "Content-Type": "application/json",
           Authorization: `JWT ${token}`,
         },
-        body: JSON.stringify(
-          isFavorited ? { product_id: id, action: "remove" } : item
-        ),
+        body: JSON.stringify(isFavorited ? { product_id: id, action: "remove" } : item),
       });
 
       const result = await res.json().catch(() => ({}));
@@ -228,29 +206,24 @@ export default function Recommendation() {
   // ✅ 레이아웃 래퍼
   const Wrapper = ({ children }) => (
     <main className="min-h-screen bg-gray-100" style={{ paddingTop: "20px" }}>
-      <div className="w-screen max-w-full px-4 flex justify-center">
-        <section
-          className="w-full max-w-4xl bg-white rounded-lg shadow-xl p-8"
-          style={{ marginLeft: "auto", marginRight: "auto" }}
-        >
+      <div className="w-screen max-w-full px-2 sm:px-4 flex justify-center">
+        <section className="w-full max-w-4xl bg-white rounded-lg shadow-xl p-4 sm:p-8">
           {children}
         </section>
       </div>
 
-      {/* 토스트 UI */}
-      <div
-        aria-live="polite"
-        aria-atomic="true"
-        className="fixed bottom-6 right-6 z-[60]"
-      >
+      {/* 토스트 */}
+      <div aria-live="polite" aria-atomic="true" className="fixed bottom-6 right-6 z-[60]">
         {toast.open && (
           <div
             className={[
-              "min-w-[240px] max-w-[360px] px-4 py-3 rounded-lg shadow-lg border text-sm",
+              "min-w-[220px] max-w-[340px] px-3 py-2 sm:px-4 sm:py-3 rounded-lg shadow-lg border text-sm",
               "animate-[fadeIn_.15s_ease-out]",
-              toast.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-900" :
-              toast.type === "error" ? "bg-red-50 border-red-200 text-red-900" :
-              "bg-sky-50 border-sky-200 text-sky-900",
+              toast.type === "success"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                : toast.type === "error"
+                ? "bg-red-50 border-red-200 text-red-900"
+                : "bg-sky-50 border-sky-200 text-sky-900",
             ].join(" ")}
             role="status"
           >
@@ -258,8 +231,6 @@ export default function Recommendation() {
           </div>
         )}
       </div>
-
-      {/* 간단한 키프레임 (Tailwind 임시) */}
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
@@ -269,7 +240,7 @@ export default function Recommendation() {
   if (loading) {
     return (
       <Wrapper>
-        <div className="text-xl font-semibold text-gray-700 text-center">
+        <div className="text-lg sm:text-xl font-semibold text-gray-700 text-center">
           추천 장학금을 로딩 중입니다...
         </div>
       </Wrapper>
@@ -280,13 +251,13 @@ export default function Recommendation() {
     return (
       <Wrapper>
         <div className="flex flex-col items-center">
-          <div className="text-xl font-semibold text-red-600 mb-4 text-center">
+          <div className="text-lg sm:text-xl font-semibold text-red-600 mb-4 text-center">
             {error}
           </div>
           {error.includes("로그인") && (
             <button
               onClick={() => navigate("/login")}
-              className="px-6 py-3 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition"
+              className="px-4 py-2 sm:px-6 sm:py-3 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition"
             >
               로그인하기
             </button>
@@ -294,7 +265,7 @@ export default function Recommendation() {
           {error.includes("나의 장학 정보") && (
             <button
               onClick={() => navigate("/userinfor")}
-              className="mt-3 px-6 py-3 bg-gray-900 text-white rounded-md shadow hover:bg-blue-500 transition"
+              className="mt-3 px-4 py-2 sm:px-6 sm:py-3 bg-gray-900 text-white rounded-md shadow hover:bg-blue-500 transition"
             >
               나의 장학 정보 입력하러 가기
             </button>
@@ -307,7 +278,7 @@ export default function Recommendation() {
   if (!recommendations.length) {
     return (
       <Wrapper>
-        <div className="text-xl font-semibold text-yellow-700 text-center">
+        <div className="text-lg sm:text-xl font-semibold text-yellow-700 text-center">
           현재 추천할 장학금이 없습니다.
         </div>
       </Wrapper>
@@ -316,11 +287,11 @@ export default function Recommendation() {
 
   return (
     <Wrapper>
-      <h1 className="text-4xl font-extrabold mb-8 pb-4 border-b-4 border-blue-600 text-gray-900 text-center">
+      <h1 className="text-2xl sm:text-4xl font-extrabold mb-6 sm:mb-8 pb-3 sm:pb-4 border-b-4 border-blue-600 text-gray-900 text-center">
         추천 장학금
       </h1>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {recommendations.map((s) => {
           const id = s.product_id ?? s.id;
           const isFav = favorites.has(id);
@@ -328,30 +299,29 @@ export default function Recommendation() {
           return (
             <article
               key={id}
-              className="w-full bg-white border border-gray-200 rounded-lg shadow-sm p-6 hover:shadow-md transition"
+              className="w-full bg-white border border-gray-200 rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition"
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                 <div>
-                  <h3 className="text-2xl font-bold text-blue-700 mb-2">
+                  <h3 className="text-lg sm:text-2xl font-bold text-blue-700 mb-1 sm:mb-2">
                     {s.name}
                   </h3>
-                  <p className="text-gray-700 mb-1">
-                    <span className="font-semibold">운영기관명:</span>{" "}
-                    {s.foundation_name}
+                  <p className="text-gray-700 text-sm sm:text-base">
+                    <span className="font-semibold">운영기관명:</span> {s.foundation_name}
                   </p>
-                  <p className="text-gray-700">
+                  <p className="text-gray-700 text-sm sm:text-base">
                     <span className="font-semibold">모집 기간:</span>{" "}
                     {s.recruitment_start} ~ {s.recruitment_end}
                   </p>
                 </div>
 
-                {/* 우측 버튼들 */}
-                <div className="flex-shrink-0 flex items-center gap-2">
+                {/* 버튼 그룹 */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
                   <button
                     onClick={() => openModal(s)}
-                    className="px-4 py-2 text-sm bg-gray-100 rounded-md border hover:bg-gray-200"
+                    className="w-full sm:w-auto px-3 py-2 text-sm bg-gray-100 rounded-md border hover:bg-gray-200 text-center"
                   >
-                    상세정보 보기
+                    상세보기
                   </button>
 
                   {homepage ? (
@@ -359,15 +329,14 @@ export default function Recommendation() {
                       href={homepage}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-4 py-2 text-sm bg-sky-500 text-white rounded-md hover:bg-sky-600 inline-flex items-center justify-center"
+                      className="w-full sm:w-auto px-3 py-2 text-sm bg-sky-500 text-white rounded-md hover:bg-sky-600 text-center"
                     >
-                      홈페이지 보기
+                      홈페이지
                     </a>
                   ) : (
                     <button
                       disabled
-                      className="px-4 py-2 text-sm bg-gray-300 text-white rounded-md cursor-not-allowed"
-                      title="홈페이지 주소가 없습니다"
+                      className="w-full sm:w-auto px-3 py-2 text-sm bg-gray-300 text-white rounded-md cursor-not-allowed text-center"
                     >
                       홈페이지 없음
                     </button>
@@ -375,10 +344,10 @@ export default function Recommendation() {
 
                   <button
                     onClick={() => toggleFavorite(s)}
-                    className={`px-3 py-2 text-lg rounded-md border ${
+                    className={`w-full sm:w-auto px-3 py-2 text-lg rounded-md border ${
                       isFav ? "bg-pink-100" : "bg-white"
                     }`}
-                    title={isFav ? "관심 장학금에서 제거" : "관심 장학금에 추가"}
+                    title={isFav ? "관심 해제" : "관심 등록"}
                   >
                     {isFav ? "❤️" : "🤍"}
                   </button>
@@ -408,51 +377,20 @@ export default function Recommendation() {
               닫기
             </button>
 
-            <h2 className="text-2xl font-bold mb-4">{selected.name} 상세 정보</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4">{selected.name} 상세 정보</h2>
 
-            <div className="space-y-2 text-gray-800 max-h-[calc(100vh-200px)] overflow-y-auto">
-              <p>
-                <strong>운영기관명:</strong> {selected.foundation_name}
-              </p>
-              <p>
-                <strong>모집 기간:</strong> {selected.recruitment_start} ~{" "}
-                {selected.recruitment_end}
-              </p>
-              <p>
-                <strong>성적기준:</strong>{" "}
-                {selected.grade_criteria_details || "-"}
-              </p>
-              <p>
-                <strong>소득기준:</strong>{" "}
-                {selected.income_criteria_details || "-"}
-              </p>
-              <p>
-                <strong>지원내역:</strong> {selected.support_details || "-"}
-              </p>
-              <p>
-                <strong>특정자격:</strong>{" "}
-                {selected.specific_qualification_details || "-"}
-              </p>
-              <p>
-                <strong>지역거주여부:</strong>{" "}
-                {selected.residency_requirement_details || "-"}
-              </p>
-              <p>
-                <strong>선발방법:</strong>{" "}
-                {selected.selection_method_details || "-"}
-              </p>
-              <p>
-                <strong>선발인원:</strong>{" "}
-                {selected.number_of_recipients_details || "-"}
-              </p>
-              <p>
-                <strong>자격제한:</strong>{" "}
-                {selected.eligibility_restrictions || "-"}
-              </p>
-              <p>
-                <strong>제출서류:</strong>{" "}
-                {selected.required_documents_details || "-"}
-              </p>
+            <div className="space-y-2 text-gray-800 max-h-[calc(100vh-200px)] overflow-y-auto text-sm sm:text-base">
+              <p><strong>운영기관명:</strong> {selected.foundation_name}</p>
+              <p><strong>모집 기간:</strong> {selected.recruitment_start} ~ {selected.recruitment_end}</p>
+              <p><strong>성적기준:</strong> {selected.grade_criteria_details || "-"}</p>
+              <p><strong>소득기준:</strong> {selected.income_criteria_details || "-"}</p>
+              <p><strong>지원내역:</strong> {selected.support_details || "-"}</p>
+              <p><strong>특정자격:</strong> {selected.specific_qualification_details || "-"}</p>
+              <p><strong>지역거주여부:</strong> {selected.residency_requirement_details || "-"}</p>
+              <p><strong>선발방법:</strong> {selected.selection_method_details || "-"}</p>
+              <p><strong>선발인원:</strong> {selected.number_of_recipients_details || "-"}</p>
+              <p><strong>자격제한:</strong> {selected.eligibility_restrictions || "-"}</p>
+              <p><strong>제출서류:</strong> {selected.required_documents_details || "-"}</p>
               <p>
                 <strong>홈페이지:</strong>{" "}
                 {urlFor(selected) ? (
@@ -470,13 +408,13 @@ export default function Recommendation() {
               </p>
             </div>
 
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="mt-6 flex flex-col sm:flex-row justify-end gap-2">
               {urlFor(selected) ? (
                 <a
                   href={urlFor(selected)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2 bg-sky-500 text-white rounded-md hover:bg-sky-600 inline-flex items-center justify-center"
+                  className="px-4 py-2 bg-sky-500 text-white rounded-md hover:bg-sky-600 text-center"
                 >
                   홈페이지 보기
                 </a>
@@ -484,7 +422,6 @@ export default function Recommendation() {
                 <button
                   disabled
                   className="px-4 py-2 bg-gray-300 text-white rounded-md cursor-not-allowed"
-                  title="홈페이지 주소가 없습니다"
                 >
                   홈페이지 없음
                 </button>
@@ -492,11 +429,9 @@ export default function Recommendation() {
 
               <button
                 onClick={() => toggleFavorite(selected)}
-                className="px-4 py-2 bg-gray-100 rounded-md border hover:bg-gray-200"
+                className="px-4 py-2 bg-gray-100 rounded-md border hover:bg-gray-200 text-center"
               >
-                {favorites.has(selected.product_id ?? selected.id)
-                  ? "관심 해제"
-                  : "관심 등록"}
+                {favorites.has(selected.product_id ?? selected.id) ? "관심 해제" : "관심 등록"}
               </button>
             </div>
           </div>
