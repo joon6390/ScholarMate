@@ -152,10 +152,10 @@ export default function Scholarships() {
 
   // 검색 초기화
   const clearSearch = () => {
-  setSearchInput("");
-  setSearchQuery(""); 
-  setPage(1);
-};
+    setSearchInput("");
+    setSearchQuery(""); 
+    setPage(1);
+  };
 
   const handleFavoriteToggle = async (item) => {
     const id = item.product_id;
@@ -270,82 +270,112 @@ export default function Scholarships() {
           <div className="no-results">검색 결과가 없습니다.</div>
         ) : (
           <>
-            <table className="scholarships-table">
-              <thead>
-                <tr>
-                  <th>장학 재단명</th>
-                  <th>장학 사업명</th>
-                  <th>기간</th>
-                  <th>상세정보</th>
-                  <th>홈페이지</th>
-                  <th>찜</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scholarships.map((item) => {
-                  const href = normalizeUrl(item.url);
-                  return (
-                    <tr key={item.product_id}>
-                      <td>{item.foundation_name}</td>
-                      <td>{item.name}</td>
-                      <td>{item.recruitment_start} ~ {item.recruitment_end}</td>
-                      <td>
-                        <button onClick={() => openModal(item)} className="details-btn">
-                          상세정보 보기
-                        </button>
-                      </td>
-                      <td>
-                        {href ? (
-                          <a
-                            href={href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="details-btn inline-flex items-center justify-center"
-                            title="홈페이지 열기"
+            {/* ✅ 데스크탑/태블릿: 테이블 */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="scholarships-table w-full">
+                <thead>
+                  <tr>
+                    <th>장학 재단명</th>
+                    <th>장학 사업명</th>
+                    <th>기간</th>
+                    <th>상세정보</th>
+                    <th>홈페이지</th>
+                    <th>찜</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {scholarships.map((item) => {
+                    const href = normalizeUrl(item.url);
+                    return (
+                      <tr key={item.product_id}>
+                        <td>{item.foundation_name}</td>
+                        <td>{item.name}</td>
+                        <td>{item.recruitment_start} ~ {item.recruitment_end}</td>
+                        <td>
+                          <button onClick={() => openModal(item)} className="details-btn">
+                            상세정보 보기
+                          </button>
+                        </td>
+                        <td>
+                          {href ? (
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="details-btn inline-flex items-center justify-center"
+                              title="홈페이지 열기"
+                            >
+                              홈페이지 보기
+                            </a>
+                          ) : (
+                            <span className="text-gray-400">홈페이지 없음</span>
+                          )}
+                        </td>
+                        <td>
+                          <button
+                            onClick={() => handleFavoriteToggle(item)}
+                            className={`favorite-btn ${favorites.has(item.product_id) ? "favorited" : ""}`}
+                            title={favorites.has(item.product_id) ? "관심 장학금에서 제거" : "관심 장학금에 추가"}
                           >
-                            홈페이지 보기
-                          </a>
-                        ) : (
-                          <span className="text-gray-400">홈페이지 없음</span>
-                        )}
-                      </td>
-                      <td>
-                        <button
-                          onClick={() => handleFavoriteToggle(item)}
-                          className={`favorite-btn ${favorites.has(item.product_id) ? "favorited" : ""}`}
-                          title={favorites.has(item.product_id) ? "관심 장학금에서 제거" : "관심 장학금에 추가"}
-                        >
-                          {favorites.has(item.product_id) ? "❤️" : "🤍"}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            {favorites.has(item.product_id) ? "❤️" : "🤍"}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-            {/* ✅ 새 페이지네이션 */}
+            {/* ✅ 모바일: 카드형 */}
+            <div className="md:hidden space-y-4">
+              {scholarships.map((item) => {
+                const href = normalizeUrl(item.url);
+                return (
+                  <div key={item.product_id} className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+                    <div className="text-xs text-gray-500 mb-1">{item.foundation_name}</div>
+                    <div className="text-sm font-semibold text-blue-700 mb-1">{item.name}</div>
+                    <div className="text-xs text-gray-600 mb-2">{item.recruitment_start} ~ {item.recruitment_end}</div>
+
+                    <div className="flex items-center justify-between text-xs">
+                      <button
+                        onClick={() => openModal(item)}
+                        className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      >
+                        상세
+                      </button>
+                      {href ? (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline"
+                        >
+                          홈페이지
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">없음</span>
+                      )}
+                      <button
+                        onClick={() => handleFavoriteToggle(item)}
+                        className={`favorite-btn ml-2 text-lg ${favorites.has(item.product_id) ? "favorited text-red-500" : "text-gray-400"}`}
+                      >
+                        {favorites.has(item.product_id) ? "❤️" : "🤍"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ✅ 페이지네이션 */}
             <div className="pagination flex items-center justify-center gap-2 mt-4">
               <span className="range-text">
                 {startIdx}-{endIdx} / 총 {totalCount}건
               </span>
 
-              <button
-                onClick={() => setPage(1)}
-                disabled={page === 1}
-                className="icon-btn"
-                aria-label="첫 페이지"
-              >
-                ⏮
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="icon-btn"
-                aria-label="이전 페이지"
-              >
-                ‹
-              </button>
+              <button onClick={() => setPage(1)} disabled={page === 1} className="icon-btn" aria-label="첫 페이지">⏮</button>
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="icon-btn" aria-label="이전 페이지">‹</button>
 
               {getPageList(page, totalPages).map((p, idx) =>
                 p === "..." ? (
@@ -362,22 +392,8 @@ export default function Scholarships() {
                 )
               )}
 
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="icon-btn"
-                aria-label="다음 페이지"
-              >
-                ›
-              </button>
-              <button
-                onClick={() => setPage(totalPages)}
-                disabled={page === totalPages}
-                className="icon-btn"
-                aria-label="마지막 페이지"
-              >
-                ⏭
-              </button>
+              <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="icon-btn" aria-label="다음 페이지">›</button>
+              <button onClick={() => setPage(totalPages)} disabled={page === totalPages} className="icon-btn" aria-label="마지막 페이지">⏭</button>
 
               {/* 페이지 크기 선택 */}
               <select
@@ -453,7 +469,10 @@ export default function Scholarships() {
 
       {/* 간단 키프레임 (CSS 파일 없이도 동작) */}
       <style>{`
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { 
+          from { opacity: 0; transform: translateY(6px); } 
+          to { opacity: 1; transform: translateY(0); } 
+        }
       `}</style>
     </div>
   );

@@ -21,7 +21,6 @@ export default function MessagesList() {
   const load = async () => {
     setLoading(true);
     try {
-      // DRF 페이지네이션/배열 모두 대응
       const { data } = await api.get("/api/community/conversations/", {
         params: { page_size: 50, ordering: "-latest_time" },
       });
@@ -39,14 +38,12 @@ export default function MessagesList() {
     load();
   }, []);
 
-  // 대화방 삭제(또는 나가기) - DELETE 우선, 실패 시 leave 엔드포인트 폴백
   const removeConversation = async (id) => {
     setRemovingId(id);
     try {
       try {
         await api.delete(`/api/community/conversations/${id}/`);
       } catch (e) {
-        // 405/404 등일 때 커스텀 나가기 엔드포인트 시도
         await api.post(`/api/community/conversations/${id}/leave/`);
       }
       setItems((prev) => prev.filter((c) => String(c.id) !== String(id)));
@@ -71,18 +68,11 @@ export default function MessagesList() {
         ) : (
           <ul className="divide-y">
             {items.map((c) => {
-              // 백엔드에서 partner 내려줌
               const other = c.partner?.username ?? "알 수 없음";
-
-              // 최신 메시지
               const last = c.latest_message ?? "";
-
-              // 최신 시간
               const at = c.latest_time
                 ? new Date(c.latest_time).toLocaleString()
                 : "";
-
-              // 읽지 않은 메시지 수
               const unread = c.unread_count ?? 0;
 
               return (
@@ -93,24 +83,26 @@ export default function MessagesList() {
                 >
                   <div className="flex items-center justify-between gap-3">
                     {/* 왼쪽: 상대 / 최신미리보기 */}
-                    <div className="min-w-0">
-                      <div className="font-medium">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-sm sm:text-base">
                         {unread > 0 ? (
-                          <Badge count={unread} offset={[8, -2]}>
+                          <Badge count={unread} offset={[6, -2]}>
                             {other}
                           </Badge>
                         ) : (
                           other
                         )}
                       </div>
-                      <div className="text-sm text-gray-600 mt-1 line-clamp-1">
+                      <div className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-1">
                         {last || "최근 메시지가 없습니다."}
                       </div>
                     </div>
 
                     {/* 오른쪽: 시간 & 삭제 버튼 */}
-                    <div className="flex items-center gap-3 shrink-0">
-                      <div className="text-xs text-gray-400">{at}</div>
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1 sm:gap-3 shrink-0 text-right">
+                      <div className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap">
+                        {at}
+                      </div>
                       <Popconfirm
                         title="이 대화방을 삭제할까요?"
                         description="대화 목록에서 제거됩니다."
@@ -127,7 +119,8 @@ export default function MessagesList() {
                           danger
                           size="small"
                           loading={removingId === c.id}
-                          onClick={(e) => e.stopPropagation()} // 리스트 클릭으로 이동 막기
+                          onClick={(e) => e.stopPropagation()}
+                          className="!text-xs sm:!text-sm"
                         >
                           삭제
                         </Button>

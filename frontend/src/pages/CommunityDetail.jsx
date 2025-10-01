@@ -178,15 +178,12 @@ export default function CommunityDetail() {
 
   /* ---------- DM ---------- */
   const startDM = async () => {
-    // 작성자 정보 검증
     if (!authorId && !authorUsername) {
       message.warning("작성자 정보를 찾을 수 없습니다.");
       return;
     }
-    // 자기 자신 방지
     if (me && authorId && Number(authorId) === Number(me.id)) {
-      message.warning("자기 자신에게는 쪽지를 보낼 수 없습니다.");
-      return;
+      return; // ✅ 자기 자신이면 아예 실행도 안 함
     }
 
     try {
@@ -247,7 +244,6 @@ export default function CommunityDetail() {
     try {
       await deleteComment(c.id);
       message.success("삭제되었습니다.");
-      // 자식까지 프론트에서 제거
       setComments((prev) => prev.filter((x) => x.id !== c.id && x.parent !== c.id));
     } catch (e) {
       console.error(e);
@@ -258,11 +254,6 @@ export default function CommunityDetail() {
   };
 
   /* ---------- 답글(대댓글) ---------- */
-  const toggleReply = (c) => {
-    const k = String(c.id);
-    setReplyOpen((prev) => (prev[k] ? { ...prev, [k]: false } : { ...prev, [k]: true }));
-  };
-
   const submitReply = useCallback(
     async (parent, value, resetInput) => {
       try {
@@ -327,7 +318,6 @@ export default function CommunityDetail() {
 
   /* ---------- 트리 구성 ---------- */
   const roots = useMemo(() => comments.filter((c) => !c.parent), [comments]);
-
   const childrenMap = useMemo(() => {
     const acc = {};
     for (const c of comments) {
@@ -338,7 +328,7 @@ export default function CommunityDetail() {
     return acc;
   }, [comments]);
 
-  /* ====== 댓글 아이템 (커스텀 레이아웃) ====== */
+  /* ====== 댓글 아이템 ====== */
   const CommentItem = ({ c, depth = 0 }) => {
     const cAuthorId = c.author?.id ?? c.author_id ?? c.user?.id ?? null;
     const cAuthorUsername =
@@ -354,15 +344,10 @@ export default function CommunityDetail() {
 
     return (
       <div className={`w-full ${depth ? "pl-6 border-l border-gray-200" : ""}`}>
-        {/* 아바타 + 본문 + 액션: Meta 쓰지 않고 수동 레이아웃 */}
         <div className="flex">
           <Avatar>{cAuthorUsername?.[0]?.toUpperCase() || "U"}</Avatar>
-
           <div className="ml-3 flex-1">
-            {/* 아바타 옆 같은 줄에 닉네임 */}
             <div className="font-semibold">{cAuthorUsername ?? "익명"}</div>
-
-            {/* 내용 */}
             {editingId === c.id ? (
               <div className="mt-2 space-y-2">
                 <Input.TextArea
@@ -377,26 +362,16 @@ export default function CommunityDetail() {
                   >
                     저장
                   </Button>
-                  <Button
-                    onClick={() => {
-                      setEditingId(null);
-                      setEditingText("");
-                    }}
-                  >
-                    취소
-                  </Button>
+                  <Button onClick={cancelEdit}>취소</Button>
                 </div>
               </div>
             ) : (
               <div className="mt-1 whitespace-pre-wrap">{c.content}</div>
             )}
-
-            {/* 날짜 + 액션: 왼쪽에 붙고, 간격 촘촘히 */}
             <div className="mt-1 flex items-center gap-2 text-sm">
               <span className="text-xs text-gray-400">
                 {c.created_at ? new Date(c.created_at).toLocaleString() : ""}
               </span>
-
               <Button
                 size="small"
                 type="link"
@@ -405,43 +380,35 @@ export default function CommunityDetail() {
               >
                 {isReplyOpen ? "답글 취소" : "답글"}
               </Button>
-
               {isMine && (
-                <Button
-                  size="small"
-                  type="link"
-                  className="!p-0 !h-auto !text-black"
-                  onClick={() => {
-                    setEditingId(c.id);
-                    setEditingText(c.content);
-                  }}
-                >
-                  수정
-                </Button>
-              )}
-
-              {isMine && (
-                <Popconfirm
-                  title="삭제하시겠어요?"
-                  okText="삭제"
-                  cancelText="취소"
-                  okButtonProps={{
-                    className:
-                      "!bg-black !border-black !text-white hover:!bg-gray-800",
-                  }}
-                  cancelButtonProps={{
-                    className: "!border-gray-400 hover:!border-gray-600",
-                  }}
-                  onConfirm={() => removeComment(c)}
-                >
-                  <Button size="small" type="link" danger className="!p-0 !h-auto">
-                    삭제
+                <>
+                  <Button
+                    size="small"
+                    type="link"
+                    className="!p-0 !h-auto !text-black"
+                    onClick={() => beginEdit(c)}
+                  >
+                    수정
                   </Button>
-                </Popconfirm>
+                  <Popconfirm
+                    title="삭제하시겠어요?"
+                    okText="삭제"
+                    cancelText="취소"
+                    okButtonProps={{
+                      className: "!bg-black !border-black !text-white hover:!bg-gray-800",
+                    }}
+                    cancelButtonProps={{
+                      className: "!border-gray-400 hover:!border-gray-600",
+                    }}
+                    onConfirm={() => removeComment(c)}
+                  >
+                    <Button size="small" type="link" danger className="!p-0 !h-auto">
+                      삭제
+                    </Button>
+                  </Popconfirm>
+                </>
               )}
             </div>
-
-            {/* 답글 입력 */}
             {isReplyOpen && (
               <ReplyEditor
                 onSubmit={(val, reset) => submitReply(c, val, reset)}
@@ -456,8 +423,6 @@ export default function CommunityDetail() {
             )}
           </div>
         </div>
-
-        {/* 자식 댓글 */}
         {(childrenMap[String(c.id)] || []).map((cc) => (
           <CommentItem key={cc.id} c={cc} depth={depth + 1} />
         ))}
@@ -482,23 +447,19 @@ export default function CommunityDetail() {
       ) : (
         <>
           <Card className="mt-4">
-            <div className="flex items-center justify-between gap-3">
-              <h1 className="text-2xl font-bold">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <h1 className="text-xl sm:text-2xl font-bold">
                 {post.title || post.scholarship_name}
               </h1>
-
-              <div className="flex gap-2">
-                <Button
-                  className="!bg-black !border-black !text-white hover:!bg-gray-800"
-                  onClick={startDM}
-                  disabled={
-                    !post?.author ||
-                    (me && authorId && Number(authorId) === Number(me.id))
-                  }
-                >
-                  작성자에게 쪽지
-                </Button>
-
+              <div className="flex flex-wrap gap-2">
+                {me && Number(authorId) !== Number(me.id) && (
+                  <Button
+                    className="!bg-black !border-black !text-white hover:!bg-gray-800"
+                    onClick={startDM}
+                  >
+                    작성자에게 쪽지
+                  </Button>
+                )}
                 {canEditPost && (
                   <>
                     <Button
@@ -512,8 +473,7 @@ export default function CommunityDetail() {
                       okText="삭제"
                       cancelText="취소"
                       okButtonProps={{
-                        className:
-                          "!bg-black !border-black !text-white hover:!bg-gray-800",
+                        className: "!bg-black !border-black !text-white hover:!bg-gray-800",
                       }}
                       cancelButtonProps={{
                         className: "!border-gray-400 hover:!border-gray-600",
@@ -526,7 +486,6 @@ export default function CommunityDetail() {
                 )}
               </div>
             </div>
-
             <div className="flex items-center mt-3">
               <Avatar>{(authorUsername || "U")[0].toUpperCase()}</Avatar>
               <div className="ml-3">
@@ -536,9 +495,7 @@ export default function CommunityDetail() {
                 </div>
               </div>
             </div>
-
             <div className="mt-5 whitespace-pre-wrap leading-7">{post.content}</div>
-
             <div className="mt-4 flex flex-wrap gap-2">
               {(post.tags || []).map((t, i) => (
                 <Tag key={`${t}-${i}`} color="blue">
@@ -547,7 +504,6 @@ export default function CommunityDetail() {
               ))}
             </div>
           </Card>
-
           <Card title={`댓글 ${comments.length}개`} className="mt-6">
             {comments.length === 0 ? (
               <Empty description="아직 댓글이 없습니다." />
@@ -558,8 +514,7 @@ export default function CommunityDetail() {
                 ))}
               </div>
             )}
-
-            <div className="mt-5 flex gap-2">
+            <div className="mt-5 flex flex-col sm:flex-row gap-2">
               <Input.TextArea
                 rows={2}
                 value={text}
@@ -570,13 +525,12 @@ export default function CommunityDetail() {
               <Button
                 onClick={submit}
                 loading={sending}
-                className="!bg-black !border-black !text-white hover:!bg-gray-800"
+                className="self-end sm:self-auto !bg-black !border-black !text-white hover:!bg-gray-800"
               >
                 등록
               </Button>
             </div>
           </Card>
-
           <Modal
             title="글 수정"
             open={postEditOpen}

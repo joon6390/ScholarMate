@@ -151,7 +151,7 @@ export default function NoticeList() {
       </h1>
 
       {/* 검색 + 총건수 + (관리자) 글쓰기 */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
         <div className="flex-1">
           <Search
             placeholder="제목/내용 검색…"
@@ -173,18 +173,18 @@ export default function NoticeList() {
           />
         </div>
 
-        <span className="text-sm text-gray-500">{total}건</span>
-
-        {/* 관리자만 글쓰기 버튼 노출 */}
-        {me?.is_staff && (
-          <Button
-            type="primary"
-            onClick={openCreate}
-            className="!bg-black !border-black !text-white hover:!bg-gray-800"
-          >
-            글쓰기
-          </Button>
-        )}
+        <div className="flex items-center gap-2 sm:ml-3 justify-between sm:justify-end">
+          <span className="text-sm text-gray-500">{total}건</span>
+          {me?.is_staff && (
+            <Button
+              type="primary"
+              onClick={openCreate}
+              className="!bg-black !border-black !text-white hover:!bg-gray-800"
+            >
+              글쓰기
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* 목록 */}
@@ -197,21 +197,25 @@ export default function NoticeList() {
           <Empty description="공지사항이 없습니다." />
         </div>
       ) : (
-        <ul className="divide-y divide-gray-200 border rounded-lg bg-white">
+        <ul className="grid gap-3 sm:divide-y sm:divide-gray-200 sm:border sm:rounded-lg sm:bg-white">
           {items.map((n) => (
-            <li key={n.id} className="p-4 hover:bg-gray-50">
+            <li
+              key={n.id}
+              className="bg-white sm:bg-transparent sm:rounded-none sm:shadow-none 
+                         p-4 sm:p-4 rounded-lg shadow-sm hover:bg-gray-50"
+            >
               <Link to={`/notice/${n.id}`} className="block">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-1">
                   {n.is_pinned && (
                     <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
                       고정
                     </span>
                   )}
-                  <h2 className="text-lg font-semibold text-gray-900 line-clamp-1">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 line-clamp-1">
                     {n.title}
                   </h2>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-xs sm:text-sm text-gray-500">
                   {new Date(n.created_at).toLocaleString()}
                 </p>
               </Link>
@@ -245,7 +249,6 @@ export default function NoticeList() {
         confirmLoading={saving}
         okText="등록"
         destroyOnHidden
-        // 등록 버튼 검정색 스타일
         okButtonProps={{
           className: "!bg-black !border-black !text-white hover:!bg-gray-800",
         }}
