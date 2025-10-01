@@ -29,7 +29,7 @@ export default function NoticeDetail() {
     })();
   }, []);
 
-  // 상세 로드 (백엔드에서 호출 시 view_count 증가)
+  // 상세 로드 (view_count 증가)
   const load = async () => {
     setLoading(true);
     try {
@@ -107,13 +107,13 @@ export default function NoticeDetail() {
       ) : !item ? (
         <div className="py-16"><Empty description="해당 공지가 없습니다." /></div>
       ) : (
-        <article className="mt-4 bg-white border border-gray-200 rounded-2xl p-6">
-          <div className="flex items-center justify-between">
+        <article className="mt-4 bg-white border border-gray-200 rounded-lg sm:rounded-2xl p-4 sm:p-6 shadow-sm sm:shadow-none">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-2">
               {item.is_pinned && (
                 <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">고정</span>
               )}
-              <h1 className="text-2xl font-extrabold text-gray-900">{item.title}</h1>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900">{item.title}</h1>
             </div>
 
             {/* 관리자 액션 */}
@@ -130,14 +130,14 @@ export default function NoticeDetail() {
             )}
           </div>
 
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
             {new Date(item.created_at).toLocaleString()}
             {typeof item.view_count === "number" && (
               <span className="ml-2 text-gray-400">조회 {item.view_count.toLocaleString()}회</span>
             )}
           </p>
 
-          <div className="mt-6 whitespace-pre-wrap leading-7 text-gray-800">
+          <div className="mt-6 whitespace-pre-wrap text-sm sm:text-base leading-6 sm:leading-7 text-gray-800">
             {item.content}
           </div>
         </article>
