@@ -1,6 +1,6 @@
 // src/pages/Messages.jsx
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // ✅ navigate 추가
+import { useParams, useNavigate } from "react-router-dom";
 import { Button, Input, Card, Empty, Spin, message as antdMessage } from "antd";
 import { listMessages, sendMessage as sendMessageApi } from "../api/community";
 import api from "../api/axios";
@@ -32,7 +32,7 @@ function mergeMessages(prev, next) {
 
 export default function Messages() {
   const { conversationId } = useParams();
-  const navigate = useNavigate(); // ✅ 쪽지함 이동
+  const navigate = useNavigate();
   const [msgs, setMsgs] = useState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
@@ -44,11 +44,6 @@ export default function Messages() {
   const endRef = useRef(null);
 
   // ---------- scroll ----------
-  const isNearBottom = (gap = 80) => {
-    const el = listRef.current;
-    if (!el) return true;
-    return el.scrollHeight - el.scrollTop - el.clientHeight <= gap;
-  };
   const scrollToBottom = (behavior = "auto") => {
     endRef.current?.scrollIntoView({ behavior, block: "end" });
   };
@@ -123,7 +118,11 @@ export default function Messages() {
 
       const firstLoad = mode === "init";
       firstLoad ? setLoading(true) : setRefreshing(true);
-      const stick = isNearBottom();
+
+      // ✅ 현재 스크롤 위치 저장
+      const el = listRef.current;
+      const prevScrollHeight = el?.scrollHeight || 0;
+      const prevScrollTop = el?.scrollTop || 0;
 
       try {
         const m = await listMessages(Number(conversationId), {
@@ -137,10 +136,17 @@ export default function Messages() {
 
         await markRead();
 
-        if (firstLoad || mode === "afterSend" || stick) {
-          const behavior =
-            mode === "init" || mode === "afterSend" ? "smooth" : "auto";
-          setTimeout(() => scrollToBottom(behavior), 30);
+        if (firstLoad || mode === "afterSend") {
+          // ✅ 최초 진입 / 보낸 직후만 맨 아래로
+          setTimeout(() => scrollToBottom("auto"), 30);
+        } else {
+          // ✅ 그 외에는 스크롤 유지
+          setTimeout(() => {
+            if (el) {
+              const diff = el.scrollHeight - prevScrollHeight;
+              el.scrollTop = prevScrollTop + diff;
+            }
+          }, 30);
         }
       } catch (e) {
         console.error(e);
@@ -204,7 +210,9 @@ export default function Messages() {
       setMsgs((prev) => prev.filter((m) => m.id !== optimistic.id));
       setText(body);
       antdMessage.error(
-        e?.response?.status === 401 ? "로그인이 필요합니다." : "상대방이 대화방을 나갔습니다."
+        e?.response?.status === 401
+          ? "로그인이 필요합니다."
+          : "상대방이 대화방을 나갔습니다."
       );
     }
   };
@@ -227,7 +235,6 @@ export default function Messages() {
             {refreshing && <Spin size="small" />}
           </div>
         }
-        // ✅ 오른쪽 상단 "대화방 나가기" 버튼 (항상 우측 정렬)
         extra={
           <Button
             size="small"
@@ -238,7 +245,10 @@ export default function Messages() {
           </Button>
         }
       >
-        <div ref={listRef} className="space-y-3 max-h-[50vh] overflow-y-auto p-1">
+        <div
+          ref={listRef}
+          className="space-y-3 max-h-[50vh] overflow-y-auto p-1"
+        >
           {loading && msgs.length === 0 ? (
             <div className="py-12 flex justify-center">
               <Spin />
@@ -265,7 +275,9 @@ export default function Messages() {
                     </div>
                     <div
                       className={`px-3 py-2 rounded inline-block mt-1 whitespace-pre-wrap ${
-                        mine ? "bg-black text-white" : "bg-gray-100 text-gray-900"
+                        mine
+                          ? "bg-black text-white"
+                          : "bg-gray-100 text-gray-900"
                       }`}
                     >
                       {m.content ?? ""}

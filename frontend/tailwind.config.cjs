@@ -1,12 +1,11 @@
 // tailwind.config.js
 module.exports = {
-    content: [
+  content: [
     "./index.html",
     "./src/**/*.{js,jsx}",
-    "./src/assets/css/**/*.css"  // ✅ 이렇게!
+    "./src/assets/css/**/*.css", 
   ],
   theme: {
     extend: {},
   },
-  plugins: [],
-}
+};

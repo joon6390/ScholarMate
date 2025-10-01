@@ -11,19 +11,19 @@ function ModalShell({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative h-full w-full flex justify-center items-start pt-24 p-4">
+      <div className="relative h-full w-full flex justify-center items-start pt-20 sm:pt-24 p-3 sm:p-4">
         <div
-          className="relative w-full max-w-[520px] bg-white rounded-xl shadow-lg border border-gray-200 p-6 max-h-[85vh] overflow-y-auto"
+          className="relative w-full max-w-[520px] bg-white rounded-xl shadow-lg border border-gray-200 p-5 sm:p-6 max-h-[85vh] overflow-y-auto"
           role="dialog"
           aria-modal="true"
         >
-          <h3 className="text-lg font-semibold mb-3 text-gray-900">{title}</h3>
+          <h3 className="text-base sm:text-lg font-semibold mb-3 text-gray-900">{title}</h3>
           {children}
           <div className="mt-5 flex items-center justify-end">
             <button
               type="button"
               onClick={onClose}
-              className="h-10 px-4 rounded-md border border-gray-300 text-sm hover:bg-gray-50"
+              className="h-9 sm:h-10 px-3 sm:px-4 rounded-md border border-gray-300 text-xs sm:text-sm hover:bg-gray-50"
             >
               닫기
             </button>
@@ -55,7 +55,7 @@ function FindIdModal({
 
   return (
     <ModalShell title="아이디 찾기" onClose={onClose}>
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
         가입하신 이메일로 본인 인증 후 아이디를 확인할 수 있어요.
       </p>
 
@@ -68,12 +68,12 @@ function FindIdModal({
         className={inputCls}
       />
 
-      <div className="mt-3 flex items-center gap-2">
+      <div className="mt-3 flex flex-col sm:flex-row items-start sm:items-center gap-2">
         <button
           type="button"
           onClick={sendIdCode}
           disabled={idSubmitting}
-          className="h-10 px-4 rounded-md bg-black text-white text-sm hover:bg-gray-800 disabled:opacity-60"
+          className="h-9 sm:h-10 px-3 sm:px-4 rounded-md bg-black text-white text-xs sm:text-sm hover:bg-gray-800 disabled:opacity-60"
         >
           {idSubmitting ? "전송 중..." : "인증코드 보내기"}
         </button>
@@ -90,12 +90,12 @@ function FindIdModal({
           onChange={(e) => setIdCode(e.target.value)}
           className={inputCls}
         />
-        <div className="mt-2">
+        <div className="mt-2 flex flex-col sm:flex-row items-start sm:items-center gap-2">
           <button
             type="button"
             onClick={verifyIdCode}
             disabled={idSubmitting}
-            className="h-10 px-4 rounded-md border border-gray-300 text-sm hover:bg-gray-50"
+            className="h-9 sm:h-10 px-3 sm:px-4 rounded-md border border-gray-300 text-xs sm:text-sm hover:bg-gray-50"
           >
             {idSubmitting ? "확인 중..." : "코드 확인"}
           </button>
@@ -108,7 +108,7 @@ function FindIdModal({
           type="button"
           onClick={revealUsernames}
           disabled={idSubmitting || !idVerified}
-          className="h-10 px-4 rounded-md bg-gray-900 text-white text-sm hover:bg-gray-800 disabled:opacity-60"
+          className="h-9 sm:h-10 px-3 sm:px-4 rounded-md bg-gray-900 text-white text-xs sm:text-sm hover:bg-gray-800 disabled:opacity-60"
         >
           {idSubmitting ? "조회 중..." : "아이디 보기"}
         </button>
@@ -120,7 +120,7 @@ function FindIdModal({
       {revealedUsernames.length > 0 && (
         <div className="mt-4 border border-gray-200 rounded-md p-3 bg-gray-50">
           <p className="text-xs text-gray-600 mb-2">해당 이메일로 가입된 아이디:</p>
-          <ul className="list-disc pl-5 text-sm text-gray-900 space-y-1 max-h-56 overflow-auto pr-1">
+          <ul className="list-disc pl-5 text-xs sm:text-sm text-gray-900 space-y-1 max-h-40 sm:max-h-56 overflow-auto pr-1">
             {revealedUsernames.map((u, i) => (
               <li key={`${u}-${i}`} className="flex items-center justify-between">
                 <span className="truncate">{u}</span>
@@ -231,16 +231,18 @@ function ResetPwByCodeModal({ onClose, inputCls }) {
 
   return (
     <ModalShell title="비밀번호 재설정 (코드 인증)" onClose={onClose}>
-      <p className="text-sm text-gray-500 mb-4">아이디와 이메일로 인증 후, 바로 새 비밀번호를 설정해요.</p>
+      <p className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
+        아이디와 이메일로 인증 후, 바로 새 비밀번호를 설정해요.
+      </p>
       <label className="block text-xs text-gray-600 mb-1">아이디</label>
       <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className={inputCls} />
       <div className="mt-3">
         <label className="block text-xs text-gray-600 mb-1">이메일</label>
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
       </div>
-      <div className="mt-3 flex items-center gap-2">
+      <div className="mt-3 flex flex-col sm:flex-row items-start sm:items-center gap-2">
         <button type="button" onClick={sendCode} disabled={submitting || cooldown > 0}
-          className="h-10 px-4 rounded-md bg-black text-white text-sm hover:bg-gray-800 disabled:opacity-60">
+          className="h-9 sm:h-10 px-3 sm:px-4 rounded-md bg-black text-white text-xs sm:text-sm hover:bg-gray-800 disabled:opacity-60">
           {submitting ? "전송 중..." : cooldown ? `재전송 ${cooldown}s` : "인증코드 보내기"}
         </button>
         {codeSent && <span className="text-xs text-emerald-600">전송됨</span>}
@@ -249,7 +251,7 @@ function ResetPwByCodeModal({ onClose, inputCls }) {
         <label className="block text-xs text-gray-600 mb-1">인증코드</label>
         <input type="text" value={code} onChange={(e) => setCode(e.target.value)} className={inputCls} />
         <button type="button" onClick={verifyCode} disabled={submitting}
-          className="mt-2 h-10 px-4 rounded-md border border-gray-300 text-sm hover:bg-gray-50">
+          className="mt-2 h-9 sm:h-10 px-3 sm:px-4 rounded-md border border-gray-300 text-xs sm:text-sm hover:bg-gray-50">
           {submitting ? "확인 중..." : "코드 확인"}
         </button>
         {verified && <span className="ml-2 text-xs text-emerald-600">인증 완료</span>}
@@ -268,7 +270,7 @@ function ResetPwByCodeModal({ onClose, inputCls }) {
       {err && <p className="text-xs text-rose-600 mt-2">{err}</p>}
       <div className="mt-4 flex items-center gap-2">
         <button type="button" onClick={resetPassword} disabled={submitting || !verified}
-          className="h-10 px-4 rounded-md bg-gray-900 text-white text-sm hover:bg-gray-800 disabled:opacity-60">
+          className="h-9 sm:h-10 px-3 sm:px-4 rounded-md bg-gray-900 text-white text-xs sm:text-sm hover:bg-gray-800 disabled:opacity-60">
           {submitting ? "변경 중..." : "비밀번호 변경"}
         </button>
       </div>
@@ -288,7 +290,6 @@ export default function Login() {
   const [showFindId, setShowFindId] = useState(false);
   const [showFindPw, setShowFindPw] = useState(false);
 
-  // 아이디 찾기 상태
   const [idEmail, setIdEmail] = useState("");
   const [idCode, setIdCode] = useState("");
   const [idSubmitting, setIdSubmitting] = useState(false);
@@ -303,9 +304,8 @@ export default function Login() {
   const from = location.state?.from || "/";
 
   const inputCls =
-    "w-full h-11 border border-gray-300 rounded-md px-4 text-sm outline-none focus:border-black focus:ring-2 focus:ring-black/30 bg-white placeholder-gray-400";
+    "w-full h-10 sm:h-11 border border-gray-300 rounded-md px-3 sm:px-4 text-sm outline-none focus:border-black focus:ring-2 focus:ring-black/30 bg-white placeholder-gray-400";
 
-  // 자동 로그인 처리
   useEffect(() => {
     const saved = localStorage.getItem("autoLogin") === "true";
     setAutoLogin(saved);
@@ -325,7 +325,6 @@ export default function Login() {
     }
   }, [navigate, from]);
 
-  // 새로고침 시 토큰 정리
   useEffect(() => {
     const onBeforeUnload = () => {
       const saved = localStorage.getItem("autoLogin") === "true";
@@ -362,7 +361,6 @@ export default function Login() {
     }
   };
 
-  // 아이디 찾기 함수
   const sendIdCode = async () => {
     setIdErr("");
     setIdInfo("");
@@ -426,21 +424,20 @@ export default function Login() {
 
   return (
     <div className="w-full bg-white flex flex-col text-gray-900">
-      {/* 로그인 카드 */}
-      <div className="flex items-start justify-center pt-[calc(var(--header-offset,64px)+4px)] pb-4 -mt-12">
-        <div className="w-[520px] max-w-[92vw] rounded-xl border border-gray-200 shadow-sm bg-white -mt-2 md:-mt-3">
-          <div className="px-10 pt-10 pb-8">
-            <div className="w-full flex flex-col items-center mb-8">
-              <img src={logo} alt="로고" className="h-40 object-contain" />
+      <div className="flex items-start justify-center pt-[calc(var(--header-offset,64px)+4px)] pb-4 -mt-10 sm:-mt-12">
+        <div className="w-[520px] max-w-[95%] sm:max-w-[92vw] rounded-xl border border-gray-200 shadow-sm bg-white">
+          <div className="px-6 sm:px-10 pt-8 sm:pt-10 pb-6 sm:pb-8">
+            <div className="w-full flex flex-col items-center mb-6 sm:mb-8">
+              <img src={logo} alt="로고" className="h-24 sm:h-40 object-contain" />
             </div>
 
-            <h2 className="font-bold text-xl mb-4 text-center">로그인</h2>
+            <h2 className="font-bold text-lg sm:text-xl mb-3 sm:mb-4 text-center">로그인</h2>
 
             {location.state?.from && (
-              <p className="text-sm text-rose-600 mb-2">로그인 후 이용 가능합니다.</p>
+              <p className="text-xs sm:text-sm text-rose-600 mb-2">로그인 후 이용 가능합니다.</p>
             )}
             {errorMessage && (
-              <p className="text-sm text-rose-600 mb-2 text-center">{errorMessage}</p>
+              <p className="text-xs sm:text-sm text-rose-600 mb-2 text-center">{errorMessage}</p>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -468,12 +465,12 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-11 bg-black hover:bg-gray-800 disabled:opacity-60 text-white text-sm font-semibold transition-colors rounded-md"
+                className="w-full h-10 sm:h-11 bg-black hover:bg-gray-800 disabled:opacity-60 text-white text-sm sm:text-base font-semibold transition-colors rounded-md"
               >
                 {loading ? "로그인 중..." : "로그인"}
               </button>
 
-              <div className="flex items-center justify-between text-xs pt-2">
+              <div className="flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm pt-2 gap-2 sm:gap-0">
                 <label
                   htmlFor="autoLogin"
                   className="inline-flex items-center gap-2 cursor-pointer select-none text-gray-900 font-bold"
@@ -501,7 +498,7 @@ export default function Login() {
                   자동 로그인
                 </label>
 
-                <div className="flex items-center gap-3 text-gray-400">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-gray-400 justify-center">
                   <button
                     type="button"
                     className="hover:text-gray-600"
@@ -544,9 +541,9 @@ export default function Login() {
         </div>
       </div>
 
-      <footer className="py-6 text-[11px] text-gray-900">
+      <footer className="py-6 text-[10px] sm:text-[11px] text-gray-900">
         <div className="mx-auto max-w-5xl px-4">
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+          <div className="flex flex-row flex-wrap items-center justify-center gap-x-5 gap-y-2 text-center">
             <span>© 2025</span>
             <a className="text-gray-900 hover:text-black" href="#!">사용자약관</a>
             <a className="text-gray-900 hover:text-black" href="#!">개인정보 취급방침</a>
@@ -557,7 +554,7 @@ export default function Login() {
           </div>
         </div>
       </footer>
-
+      
       {showFindId && (
         <FindIdModal
           onClose={() => setShowFindId(false)}

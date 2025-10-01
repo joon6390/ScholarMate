@@ -80,32 +80,49 @@ export default function Register() {
   return (
     <div className="flex justify-center items-start bg-gray-50
                     min-h-[calc(100vh-var(--header-offset,64px))] 
-                    pt-[calc(var(--header-offset,64px)+4px)] pb-0">
-      <div className="bg-white p-10 rounded-lg shadow-lg w-full max-w-md -mt-12">
-        <h1 className="text-2xl font-bold mb-6 text-gray-900 text-center border-b pb-4">회원가입</h1>
+                    pt-[calc(var(--header-offset,64px)+4px)] pb-0 px-4">
+      <div className="bg-white p-6 sm:p-10 rounded-lg shadow-lg w-full max-w-md -mt-12">
+        <h1 className="text-xl sm:text-2xl font-bold mb-6 text-gray-900 text-center border-b pb-4">
+          회원가입
+        </h1>
 
         {errorMessage && <p className="text-red-500 text-center mb-4 whitespace-pre-wrap">{errorMessage}</p>}
         {infoMessage && <p className="text-teal-600 text-center mb-4">{infoMessage}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input type="text" name="username" placeholder="아이디" onChange={handleChange} required className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500" />
-          <input type="password" name="password" placeholder="비밀번호 (8자 이상)" onChange={handleChange} required className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500" />
-          <input type="password" name="confirmPassword" placeholder="비밀번호 확인" onChange={handleChange} required className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500" />
-          <div className="flex gap-2">
-            <input type="email" name="email" placeholder="이메일 주소" onChange={handleChange} required className="flex-1 bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500" />
-            <button type="button" onClick={handleSendCode} disabled={!canSend} className={`px-3 py-2 rounded text-white transition ${canSend ? "bg-gray-900 hover:bg-blue-500" : "bg-gray-900/60 cursor-not-allowed"}`}>
+          <input type="text" name="username" placeholder="아이디" onChange={handleChange} required 
+            className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500" />
+          
+          <input type="password" name="password" placeholder="비밀번호 (8자 이상)" onChange={handleChange} required 
+            className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500" />
+          
+          <input type="password" name="confirmPassword" placeholder="비밀번호 확인" onChange={handleChange} required 
+            className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500" />
+          
+          {/* 이메일 + 버튼 */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input type="email" name="email" placeholder="이메일 주소" onChange={handleChange} required 
+              className="flex-1 bg-white border border-gray-300 rounded px-3 py-2 text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500" />
+            
+            <button type="button" onClick={handleSendCode} disabled={!canSend} 
+              className={`px-3 py-2 rounded text-sm sm:text-base text-white transition ${canSend ? "bg-gray-900 hover:bg-blue-500" : "bg-gray-900/60 cursor-not-allowed"}`}>
               {secondsLeft > 0 ? mmss(secondsLeft) : sending ? "전송 중..." : "인증번호 받기"}
             </button>
           </div>
-          <input type="text" name="code" placeholder="인증번호 입력" onChange={handleChange} required className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500" />
-          <button type="submit" disabled={submitting} className="w-full bg-gray-900 text-white py-2 rounded font-semibold hover:bg-blue-500 transition disabled:opacity-60">
+
+          <input type="text" name="code" placeholder="인증번호 입력" onChange={handleChange} required 
+            className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500" />
+          
+          <button type="submit" disabled={submitting} 
+            className="w-full bg-gray-900 text-white py-2 rounded font-semibold hover:bg-blue-500 transition disabled:opacity-60">
             {submitting ? "처리 중..." : "회원가입"}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-gray-600">
+        <p className="mt-4 text-center text-gray-600 text-sm">
           이미 계정이 있으신가요?{" "}
-          <button onClick={() => navigate("/login")} className="bg-transparent p-0 m-0 text-gray-900 font-semibold hover:text-blue-400 hover:underline cursor-pointer">
+          <button onClick={() => navigate("/login")} 
+            className="bg-transparent p-0 m-0 text-gray-900 font-semibold hover:text-blue-400 hover:underline cursor-pointer">
             로그인
           </button>
         </p>

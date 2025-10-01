@@ -1,582 +1,6 @@
-.profile-box {
-  background: #ffffff;
-  width: 100%;
-  max-width: 900px;
-  padding: 50px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 50px;
-  margin-top: 20px;
-}
-
-.title {
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 30px;
-  color: #495057;
-}
-
-.form-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap; /* 태블릿, 모바일에서 줄바꿈 */
-}
-
-.form-label {
-  flex: 0 0 160px; /* 라벨 고정 너비 */
-  font-size: 16px;
-  font-weight: 500;
-  color: #495057;
-  margin-bottom: 10px; /* 모바일에서 간격 추가 */
-}
-
-.form-input,
-.form-select,
-.form-textarea {
-  flex: 1;
-  padding: 12px;
-  font-size: 14px;
-  border: 1px solid #ced4da;
-  border-radius: 8px;
-  background-color: #f8f9fa;
-  color: #495057;
-  transition: border-color 0.2s;
-}
-
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-  border-color: #007bff;
-  outline: none;
-}
-
-.form-group {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap; /* 좁은 화면에서 줄바꿈 */
-}
-
-.form-button {
-  padding: 10px 15px;
-  font-size: 14px;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.form-button:hover {
-  background-color: #0056b3;
-}
-
-.checkbox-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.save-btn {
-  display: block;
-  width: 100%;
-  padding: 15px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.save-btn:hover {
-  background-color: #0056b3;
-}
-
-/* 반응형 디자인 */
-
-/* 태블릿 (768px 이하) */
-@media (max-width: 768px) {
-  .profile-box {
-    padding: 30px; /* 패딩 축소 */
-  }
-
-  .title {
-    font-size: 24px; /* 제목 크기 축소 */
-  }
-
-/* 공통 스타일: form-row */
-.form-row {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* 왼쪽 정렬 */
-  width: 100%; /* 부모 컨테이너에 맞게 확장 */
-  max-width: 600px; /* 입력 필드의 최대 너비 설정 */
-  margin: 0 auto; /* 중앙 정렬 */
-  padding: 0 16px; /* 좌우 여백 추가 */
-  box-sizing: border-box; /* 패딩 포함 너비 계산 */
-}
-
-  .form-label {
-    flex: 0 0 auto; /* 라벨 너비 축소 */
-    text-align: left; /* 텍스트 정렬 */
-  }
-
-  .form-input,
-  .form-select,
-  .form-textarea {
-    width: 100%; /* 입력 필드 폭 100% */
-    padding: 8px 12px; /* 입력 필드 안쪽 여백 */
-    border: 1px solid #ccc; /* 테두리 스타일 */
-    border-radius: 4px; /* 모서리 둥글게 */
-    box-sizing: border-box; /* 패딩 포함 너비 계산 */
-  }
-
-  .form-group {
-    gap: 8px; /* 요소 간 간격 축소 */
-  }
-
-  .form-button {
-    font-size: 12px; /* 버튼 크기 축소 */
-    padding: 8px 12px;
-  }
-
-  .save-btn {
-    font-size: 14px; /* 저장 버튼 크기 축소 */
-    padding: 12px 16px;
-  }
-}
-
-/* 모바일 (480px 이하) */
-@media (max-width: 480px) {
-  .profile-box {
-    padding: 20px; /* 패딩 추가 축소 */
-  }
-
-  .title {
-    font-size: 20px; /* 제목 크기 더 축소 */
-  }
-
-  .form-row {
-    flex-direction: column; /* 라벨과 입력 필드를 세로로 배치 */
-    margin-bottom: 15px; /* 간격 축소 */
-  }
-
-  .form-label {
-    margin-bottom: 8px; /* 간격 추가 */
-  }
-
-  .form-input,
-  .form-select,
-  .form-textarea {
-    width: 100%; /* 입력 필드 폭 100% */
-    font-size: 13px; /* 폰트 크기 축소 */
-    padding: 10px; /* 패딩 축소 */
-  }
-
-  .form-button {
-    font-size: 10px; /* 버튼 크기 축소 */
-    padding: 6px 10px;
-  }
-
-  .save-btn {
-    font-size: 12px; /* 저장 버튼 크기 축소 */
-    padding: 10px 14px;
-  }
-}
-
-/* 모달 오버레이 (배경) */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.search-input {
-  width: calc(100% - 16px); /* 부모 요소 너비에서 여백 보정 */
-  margin: 0 auto; /* 중앙 정렬 */
-  box-sizing: border-box; /* 패딩 포함 너비 계산 */
-}
-
-/* 모달 창 */
-.modal {
-  background: white;
-  width: 400px;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  position: relative;
-}
-
-/* 모달 제목 */
-.modal h3 {
-  margin-bottom: 15px;
-  font-size: 20px;
-  font-weight: bold;
-}
-
-/* 닫기 버튼 */
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-/* 드롭다운 리스트 */
-.dropdown-list {
-  list-style: none;
-  padding: 0;
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  margin-top: 10px;
-}
-
-/* 리스트 항목 */
-.dropdown-list li {
-  padding: 10px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-/* 리스트 항목 호버 효과 */
-.dropdown-list li:hover {
-  background: #f1f1f1;
-}
-
-/* ✅ 닫기 버튼 스타일 */
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 14px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.2s;
-}
-
-/* 닫기 버튼 호버 효과 */
-.close-btn:hover {
-  background: #0056b3;
-}
-
-/* 반응형 스타일 */
-@media (max-width: 768px) {
-  .form-row {
-    padding: 0 12px; /* 모바일에서 더 좁은 좌우 여백 */
-  }
-}
-
-.profile-box {
-  background: #ffffff;
-  width: 100%;
-  max-width: 900px;
-  padding: 50px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 50px;
-}
-
-.title {
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 30px;
-  color: #495057;
-}
-
-.form-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap; /* 태블릿, 모바일에서 줄바꿈 */
-}
-
-.form-label {
-  flex: 0 0 160px; /* 라벨 고정 너비 */
-  font-size: 16px;
-  font-weight: 500;
-  color: #495057;
-  margin-bottom: 10px; /* 모바일에서 간격 추가 */
-}
-
-.form-input,
-.form-select,
-.form-textarea {
-  flex: 1;
-  padding: 12px;
-  font-size: 14px;
-  border: 1px solid #ced4da;
-  border-radius: 8px;
-  background-color: #f8f9fa;
-  color: #495057;
-  transition: border-color 0.2s;
-}
-
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-  border-color: #007bff;
-  outline: none;
-}
-
-.form-group {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap; /* 좁은 화면에서 줄바꿈 */
-}
-
-.form-button {
-  padding: 10px 15px;
-  font-size: 14px;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.form-button:hover {
-  background-color: #0056b3;
-}
-
-.checkbox-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.save-btn {
-  display: block;
-  width: 100%;
-  padding: 15px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.save-btn:hover {
-  background-color: #0056b3;
-}
-
-/* 반응형 디자인 */
-
-/* 태블릿 (768px 이하) */
-@media (max-width: 768px) {
-  .profile-box {
-    padding: 30px; /* 패딩 축소 */
-  }
-
-  .title {
-    font-size: 24px; /* 제목 크기 축소 */
-  }
-
-/* 공통 스타일: form-row */
-.form-row {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* 왼쪽 정렬 */
-  width: 100%; /* 부모 컨테이너에 맞게 확장 */
-  max-width: 600px; /* 입력 필드의 최대 너비 설정 */
-  margin: 0 auto; /* 중앙 정렬 */
-  padding: 0 16px; /* 좌우 여백 추가 */
-  box-sizing: border-box; /* 패딩 포함 너비 계산 */
-}
-
-  .form-label {
-    flex: 0 0 auto; /* 라벨 너비 축소 */
-    text-align: left; /* 텍스트 정렬 */
-  }
-
-  .form-input,
-  .form-select,
-  .form-textarea {
-    width: 100%; /* 입력 필드 폭 100% */
-    padding: 8px 12px; /* 입력 필드 안쪽 여백 */
-    border: 1px solid #ccc; /* 테두리 스타일 */
-    border-radius: 4px; /* 모서리 둥글게 */
-    box-sizing: border-box; /* 패딩 포함 너비 계산 */
-  }
-
-  .form-group {
-    gap: 8px; /* 요소 간 간격 축소 */
-  }
-
-  .form-button {
-    font-size: 12px; /* 버튼 크기 축소 */
-    padding: 8px 12px;
-  }
-
-  .save-btn {
-    font-size: 14px; /* 저장 버튼 크기 축소 */
-    padding: 12px 16px;
-  }
-}
-
-/* 모바일 (480px 이하) */
-@media (max-width: 480px) {
-  .profile-box {
-    padding: 20px; /* 패딩 추가 축소 */
-  }
-
-  .title {
-    font-size: 20px; /* 제목 크기 더 축소 */
-  }
-
-  .form-row {
-    flex-direction: column; /* 라벨과 입력 필드를 세로로 배치 */
-    margin-bottom: 15px; /* 간격 축소 */
-  }
-
-  .form-label {
-    margin-bottom: 8px; /* 간격 추가 */
-  }
-
-  .form-input,
-  .form-select,
-  .form-textarea {
-    width: 100%; /* 입력 필드 폭 100% */
-    font-size: 13px; /* 폰트 크기 축소 */
-    padding: 10px; /* 패딩 축소 */
-  }
-
-  .form-button {
-    font-size: 10px; /* 버튼 크기 축소 */
-    padding: 6px 10px;
-  }
-
-  .save-btn {
-    font-size: 12px; /* 저장 버튼 크기 축소 */
-    padding: 10px 14px;
-  }
-}
-
-/* 모달 오버레이 (배경) */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.search-input {
-  width: calc(100% - 16px); /* 부모 요소 너비에서 여백 보정 */
-  margin: 0 auto; /* 중앙 정렬 */
-  box-sizing: border-box; /* 패딩 포함 너비 계산 */
-}
-
-/* 모달 창 */
-.modal {
-  background: white;
-  width: 400px;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  position: relative;
-}
-
-/* 모달 제목 */
-.modal h3 {
-  margin-bottom: 15px;
-  font-size: 20px;
-  font-weight: bold;
-}
-
-/* 닫기 버튼 */
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-/* 드롭다운 리스트 */
-.dropdown-list {
-  list-style: none;
-  padding: 0;
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  margin-top: 10px;
-}
-
-/* 리스트 항목 */
-.dropdown-list li {
-  padding: 10px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-/* 리스트 항목 호버 효과 */
-.dropdown-list li:hover {
-  background: #f1f1f1;
-}
-
-/* ✅ 닫기 버튼 스타일 */
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 14px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.2s;
-}
-
-/* 닫기 버튼 호버 효과 */
-.close-btn:hover {
-  background: #0056b3;
-}
-
-/* 반응형 스타일 */
-@media (max-width: 768px) {
-  .form-row {
-    padding: 0 12px; /* 모바일에서 더 좁은 좌우 여백 */
-  }
-}
-
+/* =========================
+   📦 프로필 박스
+   ========================= */
 .page-wrapper {
   display: flex;
   justify-content: center;
@@ -585,6 +9,252 @@
   box-sizing: border-box;
 }
 
-.scholarship-box {
-  min-height: 850px;
+.profile-box {
+  background: #ffffff;
+  width: 100%;
+  max-width: 900px;
+  padding: 50px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 20px auto 50px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30px;
+  color: #495057;
+}
+
+/* =========================
+   📋 폼 기본 스타일
+   ========================= */
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.form-label {
+  flex: 0 0 160px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 10px;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  color: #495057;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.form-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* =========================
+   🎛 버튼
+   ========================= */
+.form-button {
+  padding: 10px 15px;
+  font-size: 14px;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.form-button:hover {
+  background-color: #0056b3;
+}
+
+.save-btn {
+  display: block;
+  width: 100%;
+  padding: 15px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  color: white;
+  background: #007bff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.save-btn:hover {
+  background-color: #0056b3;
+}
+
+/* =========================
+   🪟 모달
+   ========================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  width: 400px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  position: relative;
+}
+.modal h3 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* 닫기 버튼 */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+.close-btn:hover {
+  background: #0056b3;
+}
+
+/* 드롭다운 */
+.dropdown-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+.dropdown-list li {
+  padding: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.dropdown-list li:hover {
+  background: #f1f1f1;
+}
+
+/* =========================
+   📱 반응형 디자인
+   ========================= */
+
+/* 태블릿 (≤768px) */
+@media (max-width: 768px) {
+  .profile-box {
+    padding: 30px;
+  }
+  .title {
+    font-size: 24px;
+  }
+  .form-row {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto 20px;
+    padding: 0 16px;
+  }
+  .form-label {
+    flex: 0 0 auto;
+    text-align: left;
+    margin-bottom: 8px;
+  }
+  .form-input,
+  .form-select,
+  .form-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 6px;
+  }
+  .form-button {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  .save-btn {
+    font-size: 14px;
+    padding: 12px 16px;
+  }
+  .modal {
+    width: 90%;
+    padding: 16px;
+  }
+}
+
+/* 모바일 (≤480px) */
+@media (max-width: 480px) {
+  .profile-box {
+    padding: 20px;
+  }
+  .title {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+  .form-row {
+    margin-bottom: 15px;
+  }
+  .form-input,
+  .form-select,
+  .form-textarea {
+    font-size: 13px;
+    padding: 10px;
+  }
+  .form-button {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+  .save-btn {
+    font-size: 12px;
+    padding: 10px 14px;
+  }
+  .modal {
+    width: 90%;
+    padding: 14px;
+  }
+  .modal h3 {
+    font-size: 18px;
+  }
 }
