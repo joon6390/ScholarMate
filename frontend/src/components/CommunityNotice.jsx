@@ -95,11 +95,7 @@ const CommunityNotice = () => {
     (async () => {
       try {
         setPopularLoading(true);
-        let res;
-        try {
-          res = await axios.get("/api/community/posts/", { params: { page_size: 20 } });
-        } catch {}
-        if (!res) return;
+        const res = await axios.get("/api/community/posts/", { params: { page_size: 20 } });
         const list = normalizeList(res.data);
         const best = list
           .map((p) => ({
@@ -108,6 +104,8 @@ const CommunityNotice = () => {
           }))
           .sort((a, b) => b.score - a.score)[0];
         if (alive) setPopularItem(best || null);
+      } catch (e) {
+        if (alive) setPopularItem(null);
       } finally {
         if (alive) setPopularLoading(false);
       }
@@ -191,7 +189,7 @@ const CommunityNotice = () => {
               </Link>
             </div>
 
-            {/* 인기글 */}
+            {/* ✅ 인기글 강조 */}
             {!popularLoading && popularItem && (
               <>
                 <div className="mb-3 p-3 rounded-md bg-yellow-50 border border-yellow-200">
