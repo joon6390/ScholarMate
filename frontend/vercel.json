@@ -5,16 +5,16 @@
 
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "http://34.228.112.95/api/$1"
+      "source": "/api/:match*",
+      "destination": "http://34.228.112.95/api/:match*"
     },
     {
-      "source": "/media/(.*)",
-      "destination": "http://34.228.112.95/media/$1"
+      "source": "/media/:match*",
+      "destination": "http://34.228.112.95/media/:match*"
     },
     {
-      "source": "/static/(.*)",
-      "destination": "http://34.228.112.95/static/$1"
+      "source": "/static/:match*",
+      "destination": "http://34.228.112.95/static/:match*"
     },
     {
       "source": "/((?!.*\\.(?:js|css|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|map|json)).*)",
@@ -35,22 +35,10 @@
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
-        }
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
       ]
     }
   ]
