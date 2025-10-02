@@ -1,33 +1,70 @@
-import axios from "axios";
+// src/api/scholarships.js
+import api from "./axios";
 
-// 환경 변수에서 백엔드 API URL 가져오기
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+/** DRF pagination 대응 */
+function asPage(data) {
+  if (!data) return { items: [], total: 0 };
+  if (Array.isArray(data)) return { items: data, total: data.length };
+  return {
+    items: data.results ?? [],
+    total: data.count ?? (data.results?.length ?? 0),
+  };
+}
 
-export const getScholarships = async (page = 1, perPage = 10) => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/scholarships/api/scholarships`, {
-      params: {
-        page,     // 현재 페이지 번호
-        perPage,  // 한 페이지당 표시할 데이터 개수
-      },
-    });
-    return response.data; // 데이터 반환
-  } catch (error) {
-    console.error("Failed to fetch scholarships:", error);
-    throw error;
-  }
-};
+/* =========================
+ * Scholarships
+ * =======================*/
 
-// 추천 장학금 불러오기
-export const getRecommendedScholarships = async (userId) => {
-  try {
-    const response = await axios.post(
-      `${API_BASE_URL}/scholarships/api/scholarships/recommend/`,
-      { user_id: userId }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("추천 장학금 가져오기 실패:", error);
-    throw error;
-  }
-};
+/** 장학금 목록 조회 */
+export async function listScholarships({
+  page = 1,
+  pageSize = 10,
+  ordering = "-deadline",
+  search = "",
+} = {}) {
+  const params = {
+    page,
+    page_size: pageSize,
+    ordering,
+    search: search || undefined,
+  };
+  const { data } = await api.get("/scholarships/", { params });
+  return asPage(data);
+}
+
+/** 특정 장학금 상세 */
+export async function getScholarship(id) {
+  const { data } = await api.get(`/scholarships/${id}/`);
+  return data;
+}
+
+/** 추천 장학금 */
+export async function getRecommendedScholarships(userId) {
+  const { data } = await api.post("/scholarships/recommend/", { user_id: userId });
+  return data;
+}
+
+/* =========================
+ * Wishlist (찜)
+ * =======================*/
+
+/** 찜 추가 */
+export async function addWishlist(id) {
+  await api.post(`/scholarships/${id}/wishlist/`);
+}
+
+/** 찜 해제 */
+export async function removeWishlist(id) {
+  await api.delete(`/scholarships/${id}/wishlist/`);
+}
+
+/** 내가 찜한 장학금 목록 */
+export async function listWishlist({
+  page = 1,
+  pageSize = 10,
+  ordering = "-deadline",
+} = {}) {
+  const params = { page, page_size: pageSize, ordering };
+  const { data } = await api.get("/scholarships/wishlist/", { params });
+  return asPage(data);
+}
