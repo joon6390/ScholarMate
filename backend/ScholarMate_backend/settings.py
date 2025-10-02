@@ -114,9 +114,7 @@ DJOSER = {
         "user": "accounts.serializers.CustomUserSerializer",
         "current_user": "accounts.serializers.CustomUserSerializer",
     },
-    # 프론트의 라우트에 맞춤
     "PASSWORD_RESET_CONFIRM_URL": "reset-password?uid={uid}&token={token}",
-    # 익명 접근 허용(비번재설정)
     "PERMISSIONS": {
         "password_reset": ["rest_framework.permissions.AllowAny"],
         "password_reset_confirm": ["rest_framework.permissions.AllowAny"],
@@ -124,8 +122,8 @@ DJOSER = {
         "user": ["rest_framework.permissions.IsAuthenticated"],
         "set_password": ["rest_framework.permissions.IsAuthenticated"],
     },
-    # ✅ Sites 미스매치로 500 방지: 도메인 강제 지정
-    "DOMAIN": os.getenv("FRONTEND_DOMAIN", "https://scholar-mate-pi.vercel.app"),
+    # ✅ 프론트엔드 현재 주소만 사용
+    "DOMAIN": os.getenv("FRONTEND_DOMAIN", "https://scholar-mate-chi.vercel.app"),
     "SITE_NAME": "ScholarMate",
 }
 
@@ -144,22 +142,18 @@ MIDDLEWARE = [
 # ===== CORS/CSRF =====
 CORS_ALLOWED_ORIGINS = os.environ.get(
     "CORS_ALLOWED_ORIGINS",
-    "http://localhost:5173,http://34.228.112.95,https://scholar-mate-pi.vercel.app",
+    "http://localhost:5173,http://34.228.112.95,https://scholar-mate-chi.vercel.app",
 ).split(",")
 CORS_ALLOW_CREDENTIALS = True
 
-# ❗ 기본 헤더를 유지한 채 필요한 헤더만 추가 (preflight 깨짐 방지)
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "authorization",
     "content-type",
 ]
 
-# (필요시) 노출 헤더
-# CORS_EXPOSE_HEADERS = ["Content-Disposition"]
-
 CSRF_TRUSTED_ORIGINS = os.environ.get(
     "CSRF_TRUSTED_ORIGINS",
-    "http://localhost:5173,http://34.228.112.95,https://scholar-mate-pi.vercel.app",
+    "http://localhost:5173,http://34.228.112.95,https://scholar-mate-chi.vercel.app",
 ).split(",")
 
 ROOT_URLCONF = "ScholarMate_backend.urls"
@@ -191,7 +185,6 @@ DATABASES = {
         "PASSWORD": os.environ["DATABASE_PASSWORD"],
         "HOST": os.environ["DATABASE_HOST"],
         "PORT": os.environ["DATABASE_PORT"],
-        # "OPTIONS": {"init_command": "SET sql_mode='STRICT_TRANS_TABLES'"},
     }
 }
 
@@ -225,3 +218,4 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "Asia/Seoul"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
