@@ -9,28 +9,28 @@ urlpatterns = [
     # 관리자
     path("admin/", admin.site.urls),
 
-    # Accounts (이메일 인증, 아이디 찾기, 비번 재설정 등)
-    path("auth/", include("accounts.urls")),
-
-    # 회원가입 / 회원정보 조회 (djoser)
-    path("auth/", include("djoser.urls")),
-
-    # JWT 로그인 / 로그아웃 (djoser.jwt)
-    path("auth/", include("djoser.urls.jwt")),
+    # Auth & Accounts
+    path("api/auth/", include("accounts.urls")),      # 이메일 인증, 아이디 찾기 등
+    path("api/auth/", include("djoser.urls")),        # 회원가입 / 유저정보
+    path("api/auth/", include("djoser.urls.jwt")),    # JWT 로그인 / 로그아웃
 
     # 장학금 앱
-    path("api/", include("scholarships.urls")),
+    path("api/scholarships/", include("scholarships.urls")),
 
     # 유저 정보 앱
-    path("userinfor/", include("userinfor.urls")),
+    path("api/userinfor/", include("userinfor.urls")),
 
     # Contact 앱
     path("api/contact/", include("contact.urls")),
 
-    # 서버 상태 확인 (루트 URL)
+    # Notices 앱
+    path("api/notices/", include("notices.urls")),
+
+    # Community 앱
+    path("api/community/", include("community.urls")),
+
+    # 서버 상태 확인
     path("", api_server_status),
-
-    path("api/", include("notices.urls")),
-
-    path("api/", include("community.urls")),
 ]
+
+

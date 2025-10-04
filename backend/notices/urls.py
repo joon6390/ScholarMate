@@ -3,8 +3,9 @@ from rest_framework.routers import DefaultRouter
 from .views import NoticeViewSet
 
 router = DefaultRouter()
-router.register("notices", NoticeViewSet, basename="notice")
+router.register("", NoticeViewSet, basename="notice")  # prefix 제거
 
 urlpatterns = [
     path("", include(router.urls)),
 ]
+
