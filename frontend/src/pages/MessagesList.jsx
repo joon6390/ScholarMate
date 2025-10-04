@@ -21,7 +21,7 @@ export default function MessagesList() {
   const load = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get("/api/community/conversations/", {
+      const { data } = await api.get("/community/conversations/", {
         params: { page_size: 50, ordering: "-latest_time" },
       });
       const list = Array.isArray(data) ? data : data?.results ?? [];
@@ -42,9 +42,9 @@ export default function MessagesList() {
     setRemovingId(id);
     try {
       try {
-        await api.delete(`/api/community/conversations/${id}/`);
+        await api.delete(`/community/conversations/${id}/`);
       } catch (e) {
-        await api.post(`/api/community/conversations/${id}/leave/`);
+        await api.post(`/community/conversations/${id}/leave/`);
       }
       setItems((prev) => prev.filter((c) => String(c.id) !== String(id)));
       antdMessage.success("대화방을 삭제했습니다.");

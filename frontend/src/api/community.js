@@ -28,7 +28,7 @@ export async function listPosts({
     page_size: pageSize,
     ordering,
   };
-  const { data } = await axios.get("/api/community/posts/", { params });
+  const { data } = await axios.get("/community/posts/", { params });
   return asPage(data);
 }
 
@@ -46,44 +46,44 @@ export async function listBookmarkedPosts({
     page_size: pageSize,
     ordering,
   };
-  const { data } = await axios.get("/api/community/posts/my_bookmarks/", { params });
+  const { data } = await axios.get("/community/posts/my_bookmarks/", { params });
   return asPage(data);
 }
 
 export async function getPost(id) {
-  const { data } = await axios.get(`/api/community/posts/${id}/`);
+  const { data } = await axios.get(`/community/posts/${id}/`);
   return data;
 }
 
 export async function createPost(payload) {
-  const { data } = await axios.post("/api/community/posts/", payload);
+  const { data } = await axios.post("/community/posts/", payload);
   return data;
 }
 
 export async function updatePost(id, payload) {
-  const { data } = await axios.patch(`/api/community/posts/${id}/`, payload);
+  const { data } = await axios.patch(`/community/posts/${id}/`, payload);
   return data;
 }
 
 export async function deletePost(id) {
-  await axios.delete(`/api/community/posts/${id}/`);
+  await axios.delete(`/community/posts/${id}/`);
 }
 
 export async function likePost(id) {
-  await axios.post(`/api/community/posts/${id}/like/`);
+  await axios.post(`/community/posts/${id}/like/`);
 }
 export async function unlikePost(id) {
-  await axios.post(`/api/community/posts/${id}/unlike/`);
+  await axios.post(`/community/posts/${id}/unlike/`);
 }
 export async function bookmarkPost(id) {
-  await axios.post(`/api/community/posts/${id}/bookmark/`);
+  await axios.post(`/community/posts/${id}/bookmark/`);
 }
 export async function unbookmarkPost(id) {
-  await axios.post(`/api/community/posts/${id}/unbookmark/`);
+  await axios.post(`/community/posts/${id}/unbookmark/`);
 }
 export async function incView(id) {
   try {
-    await axios.post(`/api/community/posts/${id}/increment_view/`);
+    await axios.post(`/community/posts/${id}/increment_view/`);
   } catch (_) {}
 }
 
@@ -96,27 +96,27 @@ export async function listComments({ postId, parent = null }) {
     parent: parent ?? undefined,
     ordering: "created_at",
   };
-  const { data } = await axios.get("/api/community/comments/", { params });
+  const { data } = await axios.get("/community/comments/", { params });
   return Array.isArray(data) ? data : data?.results ?? [];
 }
 
 export async function addComment({ postId, content, parent = null }) {
   const payload = { post: postId, content, parent };
-  const { data } = await axios.post("/api/community/comments/", payload);
+  const { data } = await axios.post("/community/comments/", payload);
   return data;
 }
 
 export async function updateComment({ id, content }) {
-  const { data } = await axios.patch(`/api/community/comments/${id}/`, { content });
+  const { data } = await axios.patch(`/community/comments/${id}/`, { content });
   return data;
 }
 
 export async function deleteComment(id) {
-  await axios.delete(`/api/community/comments/${id}/`);
+  await axios.delete(`/community/comments/${id}/`);
 }
 
 export async function addReply({ postId, parentId, content }) {
-  const { data } = await axios.post(`/api/community/comments/`, {
+  const { data } = await axios.post(`/community/comments/`, {
     post: postId,
     parent: parentId,
     content,
@@ -138,7 +138,7 @@ export async function ensureConversation({ recipientId, recipientUsername }) {
       ? { recipient_id: Number(recipientId) }
       : { recipient_username: recipientUsername };
 
-  const { data } = await axios.post("/api/community/conversations/", body);
+  const { data } = await axios.post("/community/conversations/", body);
   return data; // { id, participants, ... }
 }
 
@@ -153,13 +153,13 @@ export async function listMessages(
     page,
     page_size: pageSize,
   };
-  const { data } = await axios.get("/api/community/messages/", { params });
+  const { data } = await axios.get("/community/messages/", { params });
   return Array.isArray(data) ? data : data?.results ?? [];
 }
 
 /** 메시지 전송 */
 export async function sendMessage({ conversationId, content }) {
-  const { data } = await axios.post("/api/community/messages/", {
+  const { data } = await axios.post("/community/messages/", {
     conversation: conversationId,
     content,
   });

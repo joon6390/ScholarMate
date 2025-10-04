@@ -97,7 +97,7 @@ export default function Recommendation() {
           return;
         }
 
-        const res = await fetch(`${API_BASE}/api/recommendation/`, {
+        const res = await fetch(`${API_BASE}/scholarships/recommendation/`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `JWT ${token}`,
@@ -144,7 +144,7 @@ export default function Recommendation() {
       try {
         const token = localStorage.getItem("token");
         if (!token) return;
-        const res = await fetch(`${API_BASE}/api/wishlist/`, {
+        const res = await fetch(`${API_BASE}/scholarships/wishlist/`, {
           headers: { Authorization: `JWT ${token}` },
         });
         if (!res.ok) return;
@@ -171,8 +171,8 @@ export default function Recommendation() {
     }
 
     const url = isFavorited
-      ? `${API_BASE}/api/wishlist/toggle/`
-      : `${API_BASE}/api/wishlist/add-from-api/`;
+      ? `${API_BASE}/scholarships/wishlist/toggle/`
+      : `${API_BASE}/scholarships/wishlist/add-from-api/`;
 
     try {
       const res = await fetch(url, {

@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
+import api from "../api/axios";  // ✅ 공용 axios 인스턴스
 import "../assets/css/scholarships.css";
-
-// API 베이스 URL (.env 없으면 EC2 IP로 기본 연결)
-const API_BASE = (
-  import.meta.env.VITE_API_URL || "http://34.228.112.95"
-).replace(/\/$/, "");
 
 export default function Wishlist() {
   const [wishlist, setWishlist] = useState([]);
@@ -45,22 +41,7 @@ export default function Wishlist() {
   useEffect(() => {
     const fetchWishlist = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("로그인이 필요합니다.");
-
-        const res = await fetch(`${API_BASE}/api/wishlist/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (res.status === 401) throw new Error("로그인이 필요합니다.");
-        if (!res.ok) {
-          const text = await res.text().catch(() => "");
-          throw new Error(`요청 실패 (HTTP ${res.status}) ${text}`);
-        }
-
-        const data = await res.json();
+        const { data } = await api.get("/scholarships/wishlist/");
         setWishlist(data);
       } catch (e) {
         setError(e?.message || "요청 중 오류가 발생했습니다.");
@@ -76,21 +57,7 @@ export default function Wishlist() {
     if (!window.confirm("정말로 관심 장학금에서 삭제하시겠습니까?")) return;
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("로그인이 필요합니다.");
-
-      const res = await fetch(
-        `${API_BASE}/api/wishlist/delete/${scholarshipId}/`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!res.ok) throw new Error(`삭제 실패 (HTTP ${res.status})`);
-
+      await api.delete(`/scholarships/wishlist/delete/${scholarshipId}/`);
       setWishlist((prev) =>
         prev.filter((item) => item.scholarship.id !== scholarshipId)
       );

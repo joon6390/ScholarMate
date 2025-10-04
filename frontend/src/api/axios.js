@@ -9,7 +9,7 @@ import isTokenExpired from "./auth";
  * 로컬(Vite): '/api' → vite.config.js proxy가 VITE_API_BASE_URL로 프록시
  */
 const instance = axios.create({
-  baseURL: "/api",            // ✅ 핵심: 절대 URL 대신 '/api' 고정
+  baseURL: import.meta.env.VITE_API_BASE_URL,        // ✅ 핵심: 절대 URL 대신 '/api' 고정
   timeout: 15000,
   withCredentials:
     String(import.meta.env.VITE_WITH_CREDENTIALS || "").toLowerCase() === "true",

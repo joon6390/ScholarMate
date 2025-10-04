@@ -21,7 +21,7 @@ export async function fetchNotices({
     page_size: pageSize,
     ordering,
   };
-  const { data } = await axios.get("/api/notices/", { params });
+  const { data } = await axios.get("/notices/", { params });
   return { total: data.count, items: data.results };
 }
 
@@ -30,7 +30,7 @@ export async function fetchNotices({
  * @param {number|string} id
  */
 export async function fetchNotice(id) {
-  const { data } = await axios.get(`/api/notices/${id}/`);
+  const { data } = await axios.get(`/notices/${id}/`);
   return data;
 }
 
@@ -39,7 +39,7 @@ export async function fetchNotice(id) {
  * @param {{title:string, content:string, is_pinned?:boolean, is_published?:boolean}} payload
  */
 export async function createNotice(payload) {
-  const { data } = await axios.post("/api/notices/", payload);
+  const { data } = await axios.post("/notices/", payload);
   return data;
 }
 
@@ -49,7 +49,7 @@ export async function createNotice(payload) {
  * @param {{title?:string, content?:string, is_pinned?:boolean, is_published?:boolean}} payload
  */
 export async function updateNotice(id, payload) {
-  const { data } = await axios.patch(`/api/notices/${id}/`, payload);
+  const { data } = await axios.patch(`/notices/${id}/`, payload);
   return data;
 }
 
@@ -58,5 +58,5 @@ export async function updateNotice(id, payload) {
  * @param {number|string} id
  */
 export async function deleteNotice(id) {
-  await axios.delete(`/api/notices/${id}/`);
+  await axios.delete(`/notices/${id}/`);
 }
