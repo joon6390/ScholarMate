@@ -60,13 +60,13 @@ const CommunityNotice = () => {
       try {
         setCommunityLoading(true);
         setCommunityError(null);
-        let res = await axios.get("/api/community/posts/", {
+        let res = await axios.get("/community/posts/", {
           params: { page_size: 10, ordering: "-created_at" },
         });
         let items = normalizeList(res.data);
         if (items.length === 0) {
           try {
-            res = await axios.get("/api/community/", {
+            res = await axios.get("/community/", {
               params: { page_size: 10, ordering: "-created_at" },
             });
             items = normalizeList(res.data);
@@ -95,7 +95,7 @@ const CommunityNotice = () => {
     (async () => {
       try {
         setPopularLoading(true);
-        const res = await axios.get("/api/community/posts/", { params: { page_size: 20 } });
+        const res = await axios.get("/community/posts/", { params: { page_size: 20 } });
         const list = normalizeList(res.data);
         const best = list
           .map((p) => ({
@@ -122,7 +122,7 @@ const CommunityNotice = () => {
       try {
         setNoticeLoading(true);
         setNoticeError(null);
-        const { data } = await axios.get("/api/notices/", {
+        const { data } = await axios.get("/notices/", {
           params: { page_size: 20, ordering: "-is_pinned,-created_at" },
         });
         if (!alive) return;

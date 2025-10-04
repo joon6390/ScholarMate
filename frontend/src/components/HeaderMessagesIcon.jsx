@@ -63,7 +63,7 @@ export default function HeaderMessagesIcon({ intervalMs = 60000 }) {
       return;
     }
     try {
-      const { data } = await api.get("/api/community/conversations/", {
+      const { data } = await api.get("/community/conversations/", {
         params: { page_size: 10, ordering: "-updated_at" },
       });
       const list = Array.isArray(data) ? data : data?.results ?? [];

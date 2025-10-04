@@ -67,13 +67,6 @@ export default function Messages() {
           myId = data?.id ?? myId;
         } catch {}
       }
-      if (!myUsername) {
-        try {
-          const { data } = await api.get("/api/auth/me/");
-          myUsername = data?.username ?? myUsername;
-          myId = data?.id ?? myId;
-        } catch {}
-      }
       if (!myUsername) myUsername = localStorage.getItem("username") || null;
 
       if (mounted) {
@@ -102,7 +95,7 @@ export default function Messages() {
   const markRead = useCallback(async () => {
     if (!conversationId) return;
     try {
-      await api.post(`/api/community/conversations/${conversationId}/mark_read/`);
+      await api.post(`/community/conversations/${conversationId}/mark_read/`);
       setMsgs((prev) =>
         prev.map((m) => (m.__mine ? m : { ...m, is_read: true }))
       );
@@ -119,7 +112,6 @@ export default function Messages() {
       const firstLoad = mode === "init";
       firstLoad ? setLoading(true) : setRefreshing(true);
 
-      // ✅ 현재 스크롤 위치 저장
       const el = listRef.current;
       const prevScrollHeight = el?.scrollHeight || 0;
       const prevScrollTop = el?.scrollTop || 0;
@@ -133,14 +125,11 @@ export default function Messages() {
         const next = (Array.isArray(m) ? m : []).map(tagMine);
 
         setMsgs((prev) => (replace ? next : mergeMessages(prev, next)));
-
         await markRead();
 
         if (firstLoad || mode === "afterSend") {
-          // ✅ 최초 진입 / 보낸 직후만 맨 아래로
           setTimeout(() => scrollToBottom("auto"), 30);
         } else {
-          // ✅ 그 외에는 스크롤 유지
           setTimeout(() => {
             if (el) {
               const diff = el.scrollHeight - prevScrollHeight;
@@ -245,10 +234,7 @@ export default function Messages() {
           </Button>
         }
       >
-        <div
-          ref={listRef}
-          className="space-y-3 max-h-[50vh] overflow-y-auto p-1"
-        >
+        <div ref={listRef} className="space-y-3 max-h-[50vh] overflow-y-auto p-1">
           {loading && msgs.length === 0 ? (
             <div className="py-12 flex justify-center">
               <Spin />
@@ -267,7 +253,14 @@ export default function Messages() {
                     <div className="text-xs text-gray-400">
                       {(m.sender?.username ?? "알수없음")} ·{" "}
                       {m.created_at
-                        ? new Date(m.created_at).toLocaleString()
+                        ? new Date(m.created_at).toLocaleString("ko-KR", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })
                         : ""}
                       {!mine && !m.is_read && (
                         <span className="ml-1 w-1.5 h-1.5 bg-blue-500 inline-block rounded-full" />
@@ -275,16 +268,14 @@ export default function Messages() {
                     </div>
                     <div
                       className={`px-3 py-2 rounded inline-block mt-1 whitespace-pre-wrap ${
-                        mine
-                          ? "bg-black text-white"
-                          : "bg-gray-100 text-gray-900"
+                        mine ? "bg-black text-white" : "bg-gray-100 text-gray-900"
                       }`}
                     >
                       {m.content ?? ""}
                     </div>
                     {mine && (
-                      <div className="mt-1 text-[11px] text-gray-400">
-                        {m.is_read ? "읽음" : "전송됨"}
+                      <div className="mt-1 text-[11px] text-gray-400 flex justify-end">
+                        {m.is_read ? "✓ 읽음" : "✓ 전송됨"}
                       </div>
                     )}
                   </div>
