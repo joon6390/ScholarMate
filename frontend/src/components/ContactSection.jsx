@@ -1,20 +1,13 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../api/axios";   // ✅ 공용 axios 인스턴스 사용
 
 export default function ContactSection() {
-  const API = import.meta.env.VITE_API_BASE_URL;
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: "", msg: "" });
   const [accordionOpen, setAccordionOpen] = useState(false);
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const join = (base, path) => {
-    const b = String(base || "").trim().replace(/\/+$/, "");
-    const p = String(path || "").trim().replace(/^\/+/, "");
-    return b ? `${b}/${p}` : `/${p}`;
-  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -31,16 +24,21 @@ export default function ContactSection() {
       setLoading(true);
       setStatus({ type: "", msg: "" });
 
-      const url = join(API, "/api/contact/");
-      await axios.post(url, form, {
-        headers: { "Content-Type": "application/json" },
-      });
+      // ✅ axios.js baseURL=/api → /api/contact/ 자동 처리
+      await api.post("/contact/", form);
 
       setForm({ name: "", email: "", message: "" });
       setStatus({ type: "ok", msg: "문의가 접수되었습니다." });
     } catch (err) {
-      console.error("[Contact submit error]", err?.response?.status, err?.response?.data || err.message);
-      setStatus({ type: "error", msg: "전송에 실패했습니다. 잠시 후 다시 시도해주세요." });
+      console.error(
+        "[Contact submit error]",
+        err?.response?.status,
+        err?.response?.data || err.message
+      );
+      setStatus({
+        type: "error",
+        msg: "전송에 실패했습니다. 잠시 후 다시 시도해주세요.",
+      });
     } finally {
       setLoading(false);
     }
@@ -58,7 +56,10 @@ export default function ContactSection() {
 
             <form className="space-y-5 sm:space-y-6" onSubmit={onSubmit} noValidate>
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2 text-left" htmlFor="contact-name">
+                <label
+                  className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2 text-left"
+                  htmlFor="contact-name"
+                >
                   이름
                 </label>
                 <input
@@ -76,7 +77,10 @@ export default function ContactSection() {
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2 text-left" htmlFor="contact-email">
+                <label
+                  className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2 text-left"
+                  htmlFor="contact-email"
+                >
                   이메일
                 </label>
                 <input
@@ -94,7 +98,10 @@ export default function ContactSection() {
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2 text-left" htmlFor="contact-message">
+                <label
+                  className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2 text-left"
+                  htmlFor="contact-message"
+                >
                   문의 내용
                 </label>
                 <textarea
@@ -121,7 +128,9 @@ export default function ContactSection() {
 
               {!!status.msg && (
                 <p
-                  className={`mt-2 text-xs sm:text-sm ${status.type === "ok" ? "text-green-600" : "text-red-600"}`}
+                  className={`mt-2 text-xs sm:text-sm ${
+                    status.type === "ok" ? "text-green-600" : "text-red-600"
+                  }`}
                   role="status"
                 >
                   {status.msg}
@@ -134,27 +143,35 @@ export default function ContactSection() {
           <div className="px-2 sm:px-8 md:px-12">
             {/* 데스크탑 */}
             <div className="hidden md:block">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-left">연락처 정보</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-left">
+                연락처 정보
+              </h2>
               <div className="space-y-5 sm:space-y-6">
                 <div className="flex items-start">
                   <i className="fas fa-map-marker-alt text-custom text-base sm:text-xl mt-1"></i>
                   <div className="ml-3 sm:ml-4 text-left">
                     <h3 className="text-sm sm:text-lg font-medium text-gray-900">주소</h3>
-                    <p className="mt-1 sm:mt-2 text-xs sm:text-base text-gray-600">경기도 안성시 한경국립대학교 3층 318호</p>
+                    <p className="mt-1 sm:mt-2 text-xs sm:text-base text-gray-600">
+                      경기도 안성시 한경국립대학교 3층 318호
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start">
                   <i className="fas fa-phone text-custom text-base sm:text-xl mt-1"></i>
                   <div className="ml-3 sm:ml-4 text-left">
                     <h3 className="text-sm sm:text-lg font-medium text-gray-900">전화</h3>
-                    <p className="mt-1 sm:mt-2 text-xs sm:text-base text-gray-600">031-1234-5678</p>
+                    <p className="mt-1 sm:mt-2 text-xs sm:text-base text-gray-600">
+                      031-1234-5678
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start">
                   <i className="fas fa-envelope text-custom text-base sm:text-xl mt-1"></i>
                   <div className="ml-3 sm:ml-4 text-left">
                     <h3 className="text-sm sm:text-lg font-medium text-gray-900">이메일</h3>
-                    <p className="mt-1 sm:mt-2 text-xs sm:text-base text-gray-600">contact@hknu.com</p>
+                    <p className="mt-1 sm:mt-2 text-xs sm:text-base text-gray-600">
+                      contact@hknu.com
+                    </p>
                   </div>
                 </div>
               </div>
@@ -180,7 +197,9 @@ export default function ContactSection() {
                     <i className="fas fa-map-marker-alt text-custom text-base mt-1"></i>
                     <div className="ml-3 text-left">
                       <h3 className="text-sm font-medium text-gray-900">주소</h3>
-                      <p className="mt-1 text-xs text-gray-600">경기도 안성시 한경국립대학교 3층 318호</p>
+                      <p className="mt-1 text-xs text-gray-600">
+                        경기도 안성시 한경국립대학교 3층 318호
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start">

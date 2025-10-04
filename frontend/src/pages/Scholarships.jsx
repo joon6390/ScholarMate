@@ -64,7 +64,7 @@ export default function Scholarships() {
 
   const buildApiUrl = () => {
     const typeParam = scholarshipTypeMapping[selectedType] || "";
-    return `${API_BASE_URL}/api/scholarships/?page=${page}&perPage=${perPage}&search=${encodeURIComponent(
+    return `${API_BASE_URL}/scholarships/?page=${page}&perPage=${perPage}&search=${encodeURIComponent(
       searchQuery
     )}&type=${encodeURIComponent(typeParam)}&sort=${encodeURIComponent(sortOrder)}`;
   };
@@ -97,7 +97,7 @@ export default function Scholarships() {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-      const res = await fetch(`${API_BASE_URL}/api/wishlist/`, {
+      const res = await fetch(`${API_BASE_URL}/scholarships/wishlist/`, {
         headers: { Authorization: `JWT ${token}` },
       });
       if (res.ok) {
@@ -168,8 +168,8 @@ export default function Scholarships() {
     }
 
     const url = isFavorited
-      ? `${API_BASE_URL}/api/wishlist/toggle/`
-      : `${API_BASE_URL}/api/wishlist/add-from-api/`;
+      ? `${API_BASE_URL}/scholarships/wishlist/toggle/`
+      : `${API_BASE_URL}/scholarships/wishlist/add-from-api/`;
 
     try {
       const response = await fetch(url, {

@@ -40,7 +40,7 @@ export async function getScholarship(id) {
 
 /** 추천 장학금 */
 export async function getRecommendedScholarships(userId) {
-  const { data } = await api.post("/scholarships/recommend/", { user_id: userId });
+  const { data } = await api.post("/recommendation/", { user_id: userId });
   return data;
 }
 
@@ -48,14 +48,10 @@ export async function getRecommendedScholarships(userId) {
  * Wishlist (찜)
  * =======================*/
 
-/** 찜 추가 */
-export async function addWishlist(id) {
-  await api.post(`/scholarships/${id}/wishlist/`);
-}
-
-/** 찜 해제 */
-export async function removeWishlist(id) {
-  await api.delete(`/scholarships/${id}/wishlist/`);
+/** 찜 토글 */
+export async function toggleWishlist(id) {
+  const { data } = await api.post("/wishlist/toggle/", { scholarship_id: id });
+  return data;
 }
 
 /** 내가 찜한 장학금 목록 */
@@ -65,6 +61,17 @@ export async function listWishlist({
   ordering = "-deadline",
 } = {}) {
   const params = { page, page_size: pageSize, ordering };
-  const { data } = await api.get("/scholarships/wishlist/", { params });
+  const { data } = await api.get("/wishlist/", { params });
   return asPage(data);
+}
+
+/** 찜 삭제 */
+export async function deleteWishlist(pk) {
+  await api.delete(`/wishlist/delete/${pk}/`);
+}
+
+/** 외부 API에서 추가 */
+export async function addWishlistFromApi(scholarshipData) {
+  const { data } = await api.post("/wishlist/add-from-api/", scholarshipData);
+  return data;
 }

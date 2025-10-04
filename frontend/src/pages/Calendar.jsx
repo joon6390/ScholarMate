@@ -30,7 +30,7 @@ export default function CalendarPage() {
 }, []);
 
   useEffect(() => {
-    axios.get("/api/calendar/")
+    axios.get("/scholarships/calendar/")
       .then((res) => setEvents(res.data))
       .catch((err) => console.error("캘린더 불러오기 실패", err));
   }, []);
