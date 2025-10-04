@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api/axios";   // ✅ axios 인스턴스 사용
 
 const DUMMY_RECOMMENDATIONS = [
   {
@@ -67,9 +68,6 @@ export default function Recommendation() {
     return () => window.removeEventListener("resize", updatePad);
   }, []);
 
-  const API_BASE =
-    import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") || "http://34.228.112.95";
-
   // ===== 토스트 =====
   const [toast, setToast] = useState({ open: false, message: "", type: "success" });
   const toastTimerRef = useRef(null);
@@ -84,7 +82,7 @@ export default function Recommendation() {
   };
   useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); }, []);
 
-  // 추천 로드
+  // ===== 추천 로드 =====
   useEffect(() => {
     const fetchRecommendations = async () => {
       setLoading(true);
@@ -97,35 +95,18 @@ export default function Recommendation() {
           return;
         }
 
-        const res = await fetch(`${API_BASE}/scholarships/recommendation/`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `JWT ${token}`,
-          },
+        const { data } = await api.get("/scholarships/recommendation/", {
+          headers: { Authorization: `JWT ${token}` },
         });
-
-        if (res.status === 404) {
-          setRecommendations([]);
-          setError("먼저 '나의 장학 정보'를 입력해주세요.");
-          setLoading(false);
-          return;
-        }
-
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          if (res.status === 401)
-            throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
-          throw new Error(data?.detail || `API 응답 오류: ${res.status}`);
-        }
 
         const recs = Array.isArray(data?.scholarships) ? data.scholarships : [];
         setRecommendations(recs.length ? recs : DUMMY_RECOMMENDATIONS);
       } catch (err) {
         let msg = "예상치 못한 오류가 발생했습니다.";
-        if (String(err.message).includes("Failed to fetch"))
+        if (String(err.message).includes("Network"))
           msg = "네트워크 오류: 서버에 연결할 수 없습니다.";
-        else if (String(err.message).includes("로그인 세션이 만료")) {
-          msg = err.message;
+        else if (String(err.message).includes("401")) {
+          msg = "로그인 세션이 만료되었습니다. 다시 로그인해주세요.";
           localStorage.removeItem("token");
           localStorage.removeItem("refreshToken");
           navigate("/login");
@@ -136,31 +117,29 @@ export default function Recommendation() {
       }
     };
     fetchRecommendations();
-  }, [navigate, API_BASE]);
+  }, [navigate]);
 
-  // 찜 목록 로드
+  // ===== 찜 목록 로드 =====
   useEffect(() => {
     const loadFavorites = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) return;
-        const res = await fetch(`${API_BASE}/scholarships/wishlist/`, {
+        const { data } = await api.get("/scholarships/wishlist/", {
           headers: { Authorization: `JWT ${token}` },
         });
-        if (!res.ok) return;
-        const data = await res.json();
         const ids = (data || []).map((w) => w.scholarship.product_id);
         setFavorites(new Set(ids));
       } catch {}
     };
     loadFavorites();
-  }, [API_BASE]);
+  }, []);
 
   // 상세 모달
   const openModal = (item) => { setSelected(item); setIsModalOpen(true); };
   const closeModal = () => { setSelected(null); setIsModalOpen(false); };
 
-  // 찜 토글
+  // ===== 찜 토글 =====
   const toggleFavorite = async (item) => {
     const id = item.product_id ?? item.id;
     const isFavorited = favorites.has(id);
@@ -171,21 +150,16 @@ export default function Recommendation() {
     }
 
     const url = isFavorited
-      ? `${API_BASE}/scholarships/wishlist/toggle/`
-      : `${API_BASE}/scholarships/wishlist/add-from-api/`;
+      ? "/scholarships/wishlist/toggle/"
+      : "/scholarships/wishlist/add-from-api/";
 
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `JWT ${token}`,
-        },
-        body: JSON.stringify(isFavorited ? { product_id: id, action: "remove" } : item),
-      });
+      const { status } = await api.post(url,
+        isFavorited ? { product_id: id, action: "remove" } : item,
+        { headers: { Authorization: `JWT ${token}` } }
+      );
 
-      const result = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(result?.error || "서버 오류");
+      if (status !== 200 && status !== 201) throw new Error("서버 오류");
 
       setFavorites((prev) => {
         const updated = new Set(prev);
