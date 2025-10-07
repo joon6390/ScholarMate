@@ -88,5 +88,6 @@ python manage.py runserver
 
 ## 📷 시연 이미지 / 배포 링크 (추후 추가)
 
-- 🔗 배포 링크: (추후 작성)
-- 🖼️ 시연 캡처: (추후 이미지 추가 예정)
+- 🔗 배포 링크: https://scholar-mate-chi.vercel.app/
+- 🖼️ 시연 캡처: <img width="1884" height="920" alt="image" src="https://github.com/user-attachments/assets/674e388d-9aff-4cab-a7d0-5d1512ac8d2e" />
+
